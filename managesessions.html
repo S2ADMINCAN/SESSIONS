@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Manage Sessions</title>
+    <title>Active Sessions List</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -76,6 +76,11 @@
             display: none;
             text-align: center;
         }
+        /* Hide the form initially */
+        #addSessionForm {
+            display: none;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -98,8 +103,11 @@
             </tbody>
         </table>
 
-        <!-- Form to add a new session -->
-        <div>
+        <!-- Button to show the add session form -->
+        <button class="btn" onclick="toggleAddSessionForm()">Add Session</button>
+
+        <!-- Add session form (initially hidden) -->
+        <div id="addSessionForm">
             <h3>Add New Session</h3>
             <div class="form-group">
                 <label for="studentName">Student Name:</label>
@@ -152,6 +160,12 @@
             });
         }
 
+        // Function to toggle visibility of add session form
+        function toggleAddSessionForm() {
+            const form = document.getElementById('addSessionForm');
+            form.style.display = (form.style.display === 'none' || form.style.display === '') ? 'block' : 'none';
+        }
+
         // Function to add a new session to the list
         function addSession() {
             const studentName = document.getElementById('studentName').value;
@@ -177,6 +191,9 @@
                 document.getElementById('email').value = '';
                 document.getElementById('cost').value = '';
                 document.getElementById('s2Fee').value = '';
+
+                // Hide form after submission
+                toggleAddSessionForm();
             } else {
                 errorMessage.style.display = 'block'; // Show error message
             }
