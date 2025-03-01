@@ -1,1 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Manage Sessions</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: black;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            width: 80%;
+            background-color: #1c1c1c;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table, th, td {
+            border: 1px solid white;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #333;
+        }
+        .btn {
+            padding: 10px;
+            background-color: white;
+            color: black;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            background-color: #ccc;
+        }
+        .form-group {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        .form-group label {
+            flex: 1;
+            padding-right: 10px;
+        }
+        .form-group input {
+            flex: 2;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid white;
+            background-color: #1c1c1c;
+            color: white;
+        }
+        .error {
+            color: red;
+            display: none;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Manage Session List</h1>
 
+        <table id="sessionTable">
+            <thead>
+                <tr>
+                    <th>Student Name</th>
+                    <th>Tutor Name</th>
+                    <th>Email</th>
+                    <th>Cost</th>
+                    <th>S2 Fee</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Sessions will be dynamically added here -->
+            </tbody>
+        </table>
+
+        <!-- Form to add a new session -->
+        <div>
+            <h3>Add New Session</h3>
+            <div class="form-group">
+                <label for="studentName">Student Name:</label>
+                <input type="text" id="studentName" placeholder="Enter student name">
+            </div>
+            <div class="form-group">
+                <label for="tutorName">Tutor Name:</label>
+                <input type="text" id="tutorName" placeholder="Enter tutor name">
+            </div>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" placeholder="Enter email">
+            </div>
+            <div class="form-group">
+                <label for="cost">Cost:</label>
+                <input type="number" id="cost" placeholder="Enter cost">
+            </div>
+            <div class="form-group">
+                <label for="s2Fee">S2 Fee:</label>
+                <input type="number" id="s2Fee" placeholder="Enter S2 fee">
+            </div>
+            <button class="btn" onclick="addSession()">Add Session</button>
+        </div>
+
+        <p class="error" id="errorMessage">Please fill out all fields.</p>
+    </div>
+
+    <script>
+        // Predefined session list (this simulates reading from sessiontypes.txt)
+        let sessionList = [
+            { studentName: "Isla", tutorName: "Nick", email: "lindseycurran@hotmail.com", cost: 35, s2Fee: 7 },
+            { studentName: "Cameryn", tutorName: "Nick", email: "lindseycurran@hotmail.com", cost: 30, s2Fee: 4 }
+        ];
+
+        // Function to render the session list into the table
+        function renderSessionList() {
+            const tbody = document.querySelector("#sessionTable tbody");
+            tbody.innerHTML = ''; // Clear the table
+            sessionList.forEach((session, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${session.studentName}</td>
+                    <td>${session.tutorName}</td>
+                    <td>${session.email}</td>
+                    <td>${session.cost}</td>
+                    <td>${session.s2Fee}</td>
+                    <td><button class="btn" onclick="removeSession(${index})">Remove</button></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Function to add a new session to the list
+        function addSession() {
+            const studentName = document.getElementById('studentName').value;
+            const tutorName = document.getElementById('tutorName').value;
+            const email = document.getElementById('email').value;
+            const cost = document.getElementById('cost').value;
+            const s2Fee = document.getElementById('s2Fee').value;
+            const errorMessage = document.getElementById('errorMessage');
+
+            if (studentName && tutorName && email && cost && s2Fee) {
+                errorMessage.style.display = 'none';
+                sessionList.push({
+                    studentName,
+                    tutorName,
+                    email,
+                    cost: Number(cost),
+                    s2Fee: Number(s2Fee)
+                });
+                renderSessionList(); // Re-render the session list
+                // Clear form
+                document.getElementById('studentName').value = '';
+                document.getElementById('tutorName').value = '';
+                document.getElementById('email').value = '';
+                document.getElementById('cost').value = '';
+                document.getElementById('s2Fee').value = '';
+            } else {
+                errorMessage.style.display = 'block'; // Show error message
+            }
+        }
+
+        // Function to remove a session from the list
+        function removeSession(index) {
+            sessionList.splice(index, 1); // Remove session at the given index
+            renderSessionList(); // Re-render the session list
+        }
+
+        // Initial rendering of the session list
+        renderSessionList();
+    </script>
+</body>
+</html>
