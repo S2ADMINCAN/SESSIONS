@@ -4,56 +4,87 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>My GitHub Website</title>
+    <title>S2 Tutoring Tutor Centre</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f4f4f4;
-            color: #333;
-        }
-        header {
-            background-color: #4CAF50;
+            background-color: black;
             color: white;
-            text-align: center;
-            padding: 1em 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
-        main {
-            padding: 20px;
+        .container {
             text-align: center;
+            background-color: #1c1c1c;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+            width: 300px;
         }
         h1 {
-            font-size: 2.5em;
+            font-size: 2em;
+            margin-bottom: 20px;
         }
-        p {
-            font-size: 1.2em;
-            margin: 20px 0;
-        }
-        footer {
-            background-color: #333;
-            color: white;
-            text-align: center;
-            padding: 10px 0;
-            position: fixed;
-            bottom: 0;
+        input[type="password"] {
+            padding: 10px;
             width: 100%;
+            margin-bottom: 20px;
+            border: 1px solid white;
+            background-color: #1c1c1c;
+            color: white;
+            font-size: 1em;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            background-color: white;
+            color: black;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #ccc;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+            display: none;
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Welcome to My GitHub Website</h1>
-    </header>
-    
-    <main>
-        <h2>Hello World!</h2>
-        <p>This is a simple webpage hosted on GitHub Pages.</p>
-        <p>You can add more sections, links, images, or other content here to showcase your projects.</p>
-    </main>
+    <div class="container">
+        <h1>S2 Tutoring Tutor Centre</h1>
+        <form id="loginForm">
+            <input type="password" id="password" placeholder="Enter Password">
+            <button type="submit">Login</button>
+            <p class="error" id="error">Incorrect Password. Try Again.</p>
+        </form>
+    </div>
 
-    <footer>
-        <p>&copy; 2025 S2 Tutoring Canada | All Rights Reserved</p>
-    </footer>
+    <script>
+        const form = document.getElementById('loginForm');
+        const passwordInput = document.getElementById('password');
+        const errorMessage = document.getElementById('error');
+
+        form.addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent form submission
+
+            const correctPassword = 'tutor123'; // Set your correct password here
+            const enteredPassword = passwordInput.value;
+
+            if (enteredPassword === correctPassword) {
+                window.location.href = 'tutorcentre.html'; // Redirect if correct
+            } else {
+                errorMessage.style.display = 'block'; // Show error if incorrect
+            }
+        });
+    </script>
 </body>
 </html>
