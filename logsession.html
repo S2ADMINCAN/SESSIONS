@@ -1,1 +1,90 @@
-<>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log Tutoring Session</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+        }
+        label {
+            font-weight: bold;
+        }
+        input[type="text"], select {
+            width: 100%;
+            padding: 8px;
+            margin: 10px 0;
+            box-sizing: border-box;
+        }
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Log Tutoring Session</h2>
+        <form>
+            <label for="student">Student:</label>
+            <select id="student">
+                <!-- Options will be filled by reading the text file -->
+            </select><br>
+            
+            <label for="tutor">Tutor:</label>
+            <input type="text" id="tutor" disabled><button type="button" onclick="editField('tutor')">Edit</button><br>
+            
+            <label for="date">Date:</label>
+            <input type="text" id="date" value="" disabled><br>
+            
+            <label for="price">Price:</label>
+            <input type="text" id="price" disabled><button type="button" onclick="editField('price')">Edit</button><br>
+            
+            <label for="s2Fee">S2 Fee:</label>
+            <input type="text" id="s2Fee" disabled><button type="button" onclick="editField('s2Fee')">Edit</button><br>
+        </form>
+    </div>
+    
+    <script>
+        document.getElementById('date').value = new Date().toISOString().split('T')[0]; // Auto-fill today's date
+
+        // Fetch the student data from the text file
+        fetch('students.txt')
+        .then(response => response.text())
+        .then(data => {
+            const studentList = data.trim().split('\\n');
+            const studentSelect = document.getElementById('student');
+
+            studentList.forEach(line => {
+                const [student, tutor, , price, s2Fee] = line.split(', ');
+                const option = document.createElement('option');
+                option.value = `${student},${tutor},${price},${s2Fee}`;
+                option.text = student;
+                studentSelect.appendChild(option);
+            });
+
+            // Automatically fill other fields when a student is selected
+            studentSelect.addEventListener('change', function() {
+                const selectedData = this.value.split(',');
+                document.getElementById('tutor').value = selectedData[1];
+                document.getElementById('price').value = selectedData[2];
+                document.getElementById('s2Fee').value = selectedData[3];
+            });
+        })
+        .catch(error => console.error('Error loading student data:', error));
+
+        function editField(fieldId) {
+            document.getElementById(fieldId).disabled = false;
+        }
+    </script>
+</body>
+</html>
