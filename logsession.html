@@ -5,7 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Log Tutoring Session</title>
     <style>
-        /* Styles omitted for brevity */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: black;
+            color: white;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background-color: #333;
+        }
+        label {
+            font-weight: bold;
+        }
+        input[type="text"], select {
+            width: 100%;
+            padding: 8px;
+            margin: 10px 0;
+            box-sizing: border-box;
+            background-color: #444;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        input[type="checkbox"] {
+            margin-left: 10px;
+        }
+        button {
+            background-color: #555;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #777;
+        }
     </style>
 </head>
 <body>
@@ -14,7 +54,16 @@
         <form id="sessionForm">
             <label for="student">Student:</label>
             <select id="student" required>
-                <!-- Options omitted for brevity -->
+                <option value="" disabled selected>Select a student</option>
+                <option value="Isaac,Ryan,30,2">Isaac</option>
+                <option value="Sophie,Ryan,30,6">Sophie</option>
+                <option value="Declan,Ryan,30,6">Declan</option>
+                <option value="Isla,Nick,35,7">Isla</option>
+                <option value="Cameryn,Nick,30,4">Cameryn</option>
+                <option value="Clare,Nick,40,8">Clare</option>
+                <option value="Munreet,Jonah,30,6">Munreet</option>
+                <option value="Ikjot,Ryan,30,6">Ikjot</option>
+                <option value="Cassidy,Ryan,30,6">Cassidy</option>
             </select><br>
             
             <label for="tutor">Tutor:</label>
@@ -39,96 +88,77 @@
         </form>
     </div>
     
-    <!-- Load the API client and OAuth 2.0 library -->
     <script src="https://apis.google.com/js/api.js"></script>
-    <script src="https://apis.google.com/js/platform.js" async defer></script>
-
     <script>
-        // Google Sheets API setup
-        const CLIENT_ID = 'YOUR_CLIENT_ID.apps.googleusercontent.com'; // Replace with your OAuth Client ID
-        const API_KEY = 'YOUR_API_KEY'; // Replace with your API key
+        const CLIENT_ID = '110744525010-34st0v7r172u2uerpi2e3j1ghkk555qk.apps.googleusercontent.com'; // OAuth Client ID
+        const API_KEY = 'AIzaSyBfkl02IsZznHMlkNhyqzDQr4TfUJc6-Bw'; // API Key
         const SCOPE = 'https://www.googleapis.com/auth/spreadsheets';
-        const SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID'; // Replace with your Google Sheets ID
-        const RANGE = 'Sheet1!A2:G'; // Replace with the range where you want to insert the data
+        const SPREADSHEET_ID = '1Mj5WJU8NhcAjbvGbia3S8Uo74ng_zKo8mJSE3ANy7lM'; // Google Sheets ID
+        const RANGE = 'Sheet1!A2:K'; // Range in your Google Sheets to update
 
-        let tokenClient;
-        let gapiInited = false;
-        let gisInited = false;
-
-        function gapiLoaded() {
-            gapi.load('client', initializeGapiClient);
-        }
-
-        function gisLoaded() {
-            tokenClient = google.accounts.oauth2.initTokenClient({
-                client_id: CLIENT_ID,
-                scope: SCOPE,
-                callback: '', // This will be set dynamically
-            });
-        }
-
-        function initializeGapiClient() {
+        // Load the Google API client
+        function gapiLoad() {
             gapi.client.init({
                 apiKey: API_KEY,
                 clientId: CLIENT_ID,
-                discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4'],
                 scope: SCOPE,
             }).then(() => {
-                gapiInited = true;
-                maybeEnableButtons();
+                console.log("GAPI client initialized.");
+            }).catch((error) => {
+                console.error("Error loading GAPI client:", error);
             });
         }
 
-        function maybeEnableButtons() {
-            if (gapiInited && gisInited) {
-                // Enable the submit button if both Google APIs are initialized
-                document.getElementById('sessionForm').addEventListener('submit', handleFormSubmit);
-            }
-        }
+        // Handle form submission
+        document.getElementById('sessionForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent form submission
 
-        function handleFormSubmit(event) {
-            event.preventDefault();
-
-            // Get form values
+            // Collect the data from the form
             const student = document.getElementById('student').value.split(',')[0];
             const tutor = document.getElementById('tutor').value;
             const date = document.getElementById('date').value;
             const price = document.getElementById('price').value;
             const s2Fee = document.getElementById('s2Fee').value;
-            const tutorPaid = document.getElementById('tutorPaid').checked ? 'Yes' : 'No';
-            const studentCharged = document.getElementById('studentCharged').checked ? 'Yes' : 'No';
+            const tutorPaid = document.getElementById('tutorPaid').checked ? 'TRUE' : 'FALSE';
+            const studentCharged = document.getElementById('studentCharged').checked ? 'TRUE' : 'FALSE';
 
-            const rowData = [student, tutor, date, price, s2Fee, tutorPaid, studentCharged];
+            const values = [
+                [
+                    date,              // Date and Time
+                    student,           // Student
+                    '',                // Email (leave blank if not used)
+                    tutor,             // Tutor
+                    1,                 // Session Length (set to 1)
+                    '',                // Hours Traveled (leave blank)
+                    price,             // Price
+                    s2Fee,             // S2 Fee
+                    tutorPaid,         // Tutor Paid (boolean)
+                    studentCharged,    // Client Charged (boolean)
+                    ''                 // Notes (leave blank)
+                ]
+            ];
 
-            // Send data to Google Sheets
-            appendToSheet(rowData);
-        }
+            const requestBody = {
+                values: values
+            };
 
-        function appendToSheet(rowData) {
-            const params = {
+            // Make the API call to update Google Sheets
+            gapi.client.sheets.spreadsheets.values.update({
                 spreadsheetId: SPREADSHEET_ID,
                 range: RANGE,
-                valueInputOption: 'RAW',
-            };
-
-            const valueRangeBody = {
-                majorDimension: 'ROWS',
-                values: [rowData],
-            };
-
-            const request = gapi.client.sheets.spreadsheets.values.append(params, valueRangeBody);
-            request.then((response) => {
-                console.log('Data successfully added to the sheet:', response);
-                alert('Session logged successfully!');
-            }, (error) => {
-                console.error('Error:', error);
-                alert('Error logging session. Please try again.');
+                valueInputOption: 'USER_ENTERED',
+                resource: requestBody
+            }).then((response) => {
+                console.log("Sheet updated:", response);
+                alert("Session logged successfully.");
+            }).catch((error) => {
+                console.error("Error updating sheet:", error);
+                alert("Error logging session.");
             });
-        }
+        });
 
-        // Initialize both APIs
-        gapiLoaded();
-        gisLoaded();
+        // Load the API client when the page is ready
+        gapi.load('client:auth2', gapiLoad);
     </script>
 </body>
 </html>
