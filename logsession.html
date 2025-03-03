@@ -56,31 +56,24 @@
     
     <script>
         document.getElementById('date').value = new Date().toISOString().split('T')[0]; // Auto-fill today's date
+        const students = `Isaac, Ryan, N/A, 30, 2\nSophie, Ryan, sophiehenri613@gmail.com, 30, 6\nDeclan, Ryan, declanhagley@gmail.com, 30, 6\nIsla, Nick, lindseycurran@hotmail.com, 35, 7\nCameryn, Nick, lindseycurran@hotmail.com, 30, 4\nClare, Nick, clarekwiatkowski00@gmail.com, 40, 8\nMunreet, Jonah, munreetcheema16@gmail.com, 30, 6\nIkjot, Ryan, IkjotCheema2008@gmail.com, 30, 6\nCassidy, Ryan, cassidyy148@gmail.com, 30, 6`;
+        const studentList = students.split('\n');
+        const studentSelect = document.getElementById('student');
 
-        // Fetch the student data from the text file
-        fetch('students.txt')
-        .then(response => response.text())
-        .then(data => {
-            const studentList = data.trim().split('\\n');
-            const studentSelect = document.getElementById('student');
+        studentList.forEach(line => {
+            const [student, tutor, , price, s2Fee] = line.split(', ');
+            const option = document.createElement('option');
+            option.value = `${student},${tutor},${price},${s2Fee}`;
+            option.text = student;
+            studentSelect.appendChild(option);
+        });
 
-            studentList.forEach(line => {
-                const [student, tutor, , price, s2Fee] = line.split(', ');
-                const option = document.createElement('option');
-                option.value = `${student},${tutor},${price},${s2Fee}`;
-                option.text = student;
-                studentSelect.appendChild(option);
-            });
-
-            // Automatically fill other fields when a student is selected
-            studentSelect.addEventListener('change', function() {
-                const selectedData = this.value.split(',');
-                document.getElementById('tutor').value = selectedData[1];
-                document.getElementById('price').value = selectedData[2];
-                document.getElementById('s2Fee').value = selectedData[3];
-            });
-        })
-        .catch(error => console.error('Error loading student data:', error));
+        studentSelect.addEventListener('change', function() {
+            const selectedData = this.value.split(',');
+            document.getElementById('tutor').value = selectedData[1];
+            document.getElementById('price').value = selectedData[2];
+            document.getElementById('s2Fee').value = selectedData[3];
+        });
 
         function editField(fieldId) {
             document.getElementById(fieldId).disabled = false;
