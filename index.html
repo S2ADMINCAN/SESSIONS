@@ -2,46 +2,41 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Message Port Test - Parent</title>
+  <title>Parent Messaging Test (index.html)</title>
 </head>
 <body>
-  <h1>Parent Page</h1>
-
-  <!-- Iframe that loads child.html -->
-  <iframe id="childFrame" src="child.html" width="400" height="200"></iframe>
+  <h1>Parent Page (index.html)</h1>
+  <!-- Load the child page in an iframe -->
+  <iframe id="childFrame" src="child.html" width="600" height="300"></iframe>
   
   <div style="margin-top: 1rem;">
     <button id="sendMessageBtn">Send Message to Child</button>
-    <button id="removeFrameBtn">Remove Iframe Immediately</button>
+    <button id="removeIframeBtn">Remove Iframe Immediately</button>
   </div>
 
   <script>
-    // Grab a reference to the iframe's window object
-    const iframeElement = document.getElementById('childFrame');
-    let childWindow = iframeElement.contentWindow;
+    const iframe = document.getElementById('childFrame');
+    let childWindow = iframe.contentWindow;
 
-    // Listen for messages coming back from the child
+    // Listen for messages from the child
     window.addEventListener('message', (event) => {
       // For security, ensure the message is from the same origin
-      if (event.origin !== window.location.origin) {
-        return;
-      }
+      if (event.origin !== window.location.origin) return;
       console.log('Parent received:', event.data);
     });
 
     // Send a message to the child when the button is clicked
     document.getElementById('sendMessageBtn').addEventListener('click', () => {
       if (childWindow) {
-        console.log('Parent sending message: "Hello from parent"');
-        childWindow.postMessage('Hello from parent', window.location.origin);
+        console.log('Parent: Sending message "Hello from Parent!"');
+        childWindow.postMessage('Hello from Parent!', window.location.origin);
       }
     });
 
-    // Remove the iframe before the child responds
-    // This can cause "message port closed" or similar errors in some browsers
-    document.getElementById('removeFrameBtn').addEventListener('click', () => {
-      console.log('Removing iframe before response...');
-      iframeElement.remove();
+    // Remove the iframe immediately to simulate the message port closing before a response is received
+    document.getElementById('removeIframeBtn').addEventListener('click', () => {
+      console.log('Parent: Removing iframe immediately.');
+      iframe.remove();
       childWindow = null;
     });
   </script>
