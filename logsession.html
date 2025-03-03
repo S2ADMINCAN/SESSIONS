@@ -1,196 +1,174 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Log Tutoring Session</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: black;
-            color: white;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 10px;
-            background-color: #333;
-        }
-        label {
-            font-weight: bold;
-        }
-        input[type="text"], select {
-            width: 100%;
-            padding: 8px;
-            margin: 10px 0;
-            box-sizing: border-box;
-            background-color: #444;
-            color: white;
-            border: none;
-            border-radius: 5px;
-        }
-        input[type="checkbox"] {
-            margin-left: 10px;
-        }
-        button {
-            background-color: #555;
-            color: white;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #777;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Log Tutoring Session</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: black;
+      color: white;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      background-color: #333;
+    }
+    label {
+      font-weight: bold;
+    }
+    input[type="text"], select {
+      width: 100%;
+      padding: 8px;
+      margin: 10px 0;
+      box-sizing: border-box;
+      background-color: #444;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    input[type="checkbox"] {
+      margin-left: 10px;
+    }
+    button {
+      background-color: #555;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #777;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Log Tutoring Session</h2>
-        <form id="sessionForm">
-            <label for="student">Student:</label>
-            <select id="student" required>
-                <option value="" disabled selected>Select a student</option>
-                <option value="Isaac,Ryan,30,2">Isaac</option>
-                <option value="Sophie,Ryan,30,6">Sophie</option>
-                <option value="Declan,Ryan,30,6">Declan</option>
-                <option value="Isla,Nick,35,7">Isla</option>
-                <option value="Cameryn,Nick,30,4">Cameryn</option>
-                <option value="Clare,Nick,40,8">Clare</option>
-                <option value="Munreet,Jonah,30,6">Munreet</option>
-                <option value="Ikjot,Ryan,30,6">Ikjot</option>
-                <option value="Cassidy,Ryan,30,6">Cassidy</option>
-            </select><br>
-            
-            <label for="tutor">Tutor:</label>
-            <input type="text" id="tutor" required><br>
-            
-            <label for="date">Date:</label>
-            <input type="text" id="date" required><br>
-            
-            <label for="price">Price:</label>
-            <input type="text" id="price" required><br>
-            
-            <label for="s2Fee">S2 Fee:</label>
-            <input type="text" id="s2Fee" required><br>
-            
-            <label for="tutorPaid">Tutor Paid:</label>
-            <input type="checkbox" id="tutorPaid"><br>
-            
-            <label for="studentCharged">Student Charged:</label>
-            <input type="checkbox" id="studentCharged"><br>
-            
-            <center><button type="submit">Submit</button></center>
-        </form>
-    </div>
-    
-    <script>
-        const CLIENT_ID = '110744525010-34st0v7r172u2uerpi2e3j1ghkk555qk.apps.googleusercontent.com'; // Replace with your OAuth Client ID
-        const API_KEY = 'AIzaSyBfkl02IsZznHMlkNhyqzDQr4TfUJc6-Bw'; // Replace with your API key
-        const SCOPE = 'https://www.googleapis.com/auth/spreadsheets';
-        const SPREADSHEET_ID = '1Mj5WJU8NhcAjbvGbia3S8Uo74ng_zKo8mJSE3ANy7lM'; // Replace with your Google Sheets ID
-        const RANGE = 'Sheet1!A2:G'; // Replace with the range where you want to insert the data
+  <div class="container">
+    <h2>Log Tutoring Session</h2>
+    <form id="sessionForm">
+      <label for="student">Student:</label>
+      <select id="student" required>
+        <option value="" disabled selected>Select a student</option>
+        <option value="Isaac,Ryan,30,2">Isaac</option>
+        <option value="Sophie,Ryan,30,6">Sophie</option>
+        <option value="Declan,Ryan,30,6">Declan</option>
+        <option value="Isla,Nick,35,7">Isla</option>
+        <option value="Cameryn,Nick,30,4">Cameryn</option>
+        <option value="Clare,Nick,40,8">Clare</option>
+        <option value="Munreet,Jonah,30,6">Munreet</option>
+        <option value="Ikjot,Ryan,30,6">Ikjot</option>
+        <option value="Cassidy,Ryan,30,6">Cassidy</option>
+      </select><br />
 
-        document.getElementById('date').value = new Date().toISOString().split('T')[0];
+      <label for="tutor">Tutor:</label>
+      <input type="text" id="tutor" required readonly /><br />
 
-        // Student data mapping
-        const studentData = {
-            'Isaac': { tutor: 'Ryan', price: '30', s2Fee: '2' },
-            'Sophie': { tutor: 'Ryan', price: '30', s2Fee: '6' },
-            'Declan': { tutor: 'Ryan', price: '30', s2Fee: '6' },
-            'Isla': { tutor: 'Nick', price: '35', s2Fee: '7' },
-            'Cameryn': { tutor: 'Nick', price: '30', s2Fee: '4' },
-            'Clare': { tutor: 'Nick', price: '40', s2Fee: '8' },
-            'Munreet': { tutor: 'Jonah', price: '30', s2Fee: '6' },
-            'Ikjot': { tutor: 'Ryan', price: '30', s2Fee: '6' },
-            'Cassidy': { tutor: 'Ryan', price: '30', s2Fee: '6' }
-        };
+      <label for="date">Date:</label>
+      <input type="text" id="date" required readonly /><br />
 
-        // Automatically fill other fields when a student is selected
-        document.getElementById('student').addEventListener('change', function() {
-            const selectedStudent = this.value.split(',')[0];
-            
-            // Set tutor, price, and s2Fee
-            const studentInfo = studentData[selectedStudent];
-            if (studentInfo) {
-                document.getElementById('tutor').value = studentInfo.tutor;
-                document.getElementById('price').value = studentInfo.price;
-                document.getElementById('s2Fee').value = studentInfo.s2Fee;
-            }
+      <label for="price">Price:</label>
+      <input type="text" id="price" required readonly /><br />
 
-            // Reset checkboxes
-            document.getElementById('tutorPaid').checked = false;
-            document.getElementById('studentCharged').checked = false;
-        });
+      <label for="s2Fee">S2 Fee:</label>
+      <input type="text" id="s2Fee" required readonly /><br />
 
-        // Handle form submission
-        document.getElementById('sessionForm').addEventListener('submit', function(e) {
-            e.preventDefault(); // Prevent form submission
+      <label for="tutorPaid">Tutor Paid:</label>
+      <input type="checkbox" id="tutorPaid" /><br />
 
-            // Collect the data
-            const student = document.getElementById('student').value.split(',')[0];
-            const tutor = document.getElementById('tutor').value;
-            const date = document.getElementById('date').value;
-            const price = document.getElementById('price').value;
-            const s2Fee = document.getElementById('s2Fee').value;
-            const tutorPaid = document.getElementById('tutorPaid').checked ? 'Yes' : 'No';
-            const studentCharged = document.getElementById('studentCharged').checked ? 'Yes' : 'No';
+      <label for="studentCharged">Student Charged:</label>
+      <input type="checkbox" id="studentCharged" /><br />
 
-            const sessionData = [
-                [date, student, tutor, price, s2Fee, tutorPaid, studentCharged]
-            ];
+      <center><button type="submit">Submit</button></center>
+    </form>
+  </div>
 
-            // Call the Google Sheets API to append the session data
-            appendToSheet(sessionData);
-        });
+  <!-- Load the Google API client library -->
+  <script src="https://apis.google.com/js/api.js"></script>
+  <script>
+    // Replace with your own credentials
+    const CLIENT_ID = '110744525010-34st0v7r172u2uerpi2e3j1ghkk555qk.apps.googleusercontent.com';
+    const API_KEY = 'AIzaSyBfkl02IsZznHMlkNhyqzDQr4TfUJc6-Bw';
+    const SCOPE = 'https://www.googleapis.com/auth/spreadsheets';
+    const SPREADSHEET_ID = '1Mj5WJU8NhcAjbvGbia3S8Uo74ng_zKo8mJSE3ANy7lM';
+    const RANGE = 'Sheet1!A2:G';
 
-        // Function to append data to Google Sheets
-        function appendToSheet(sessionData) {
-            gapi.client.init({
-                apiKey: API_KEY,
-                clientId: CLIENT_ID,
-                scope: SCOPE
-            }).then(function() {
-                const params = {
-                    spreadsheetId: SPREADSHEET_ID,
-                    range: RANGE,
-                    valueInputOption: 'RAW'
-                };
-                const valueRangeBody = {
-                    values: sessionData
-                };
+    // Auto-fill today's date
+    document.getElementById('date').value = new Date().toISOString().split('T')[0];
 
-                const request = gapi.client.sheets.spreadsheets.values.append(params, valueRangeBody);
-                request.then(function(response) {
-                    console.log('Data appended successfully!', response);
-                    alert('Session logged successfully.');
-                }, function(reason) {
-                    console.error('Error appending data: ' + reason.result.error.message);
-                });
-            });
-        }
+    // Auto-fill tutor, price, s2Fee on student change
+    document.getElementById('student').addEventListener('change', () => {
+      const selectedData = document.getElementById('student').value.split(',');
+      document.getElementById('tutor').value = selectedData[1];
+      document.getElementById('price').value = selectedData[2];
+      document.getElementById('s2Fee').value = selectedData[3];
+      document.getElementById('tutorPaid').checked = false;
+      document.getElementById('studentCharged').checked = false;
+    });
 
-        // Load the Google API client
-        function loadClient() {
-            gapi.load('client:auth2', initClient);
-        }
+    // Submit form -> Append data to Google Sheets
+    document.getElementById('sessionForm').addEventListener('submit', (e) => {
+      e.preventDefault(); // Prevent normal form submission
 
-        // Initialize the Google API client
-        function initClient() {
-            gapi.client.init({
-                apiKey: API_KEY,
-                clientId: CLIENT_ID,
-                scope: SCOPE
-            }).then(function() {
-                console.log('Google API Client initialized');
-            });
-        }
-    </script>
+      // Gather form data
+      const student = document.getElementById('student').value.split(',')[0];
+      const tutor = document.getElementById('tutor').value;
+      const date = document.getElementById('date').value;
+      const price = document.getElementById('price').value;
+      const s2Fee = document.getElementById('s2Fee').value;
+      const tutorPaid = document.getElementById('tutorPaid').checked ? 'Yes' : 'No';
+      const studentCharged = document.getElementById('studentCharged').checked ? 'Yes' : 'No';
 
-    <script async defer src="https://apis.google.com/js/api.js" onload="loadClient()"></script>
+      // Prepare data in the format needed by the Sheets API
+      const values = [
+        [date, student, '', tutor, '', '', price, s2Fee, tutorPaid, studentCharged, '']
+      ];
+      const resource = { values };
+
+      // Make the append call
+      gapi.client.sheets.spreadsheets.values.append({
+        spreadsheetId: SPREADSHEET_ID,
+        range: RANGE,
+        valueInputOption: 'RAW',
+        resource: resource
+      }).then((response) => {
+        console.log('Append response:', response);
+        alert('Session logged successfully.');
+      }).catch((error) => {
+        console.error('Error appending data:', error);
+        alert('Failed to log session.');
+      });
+    });
+
+    // Initialize the Google API client & sign in user
+    function init() {
+      gapi.load('client:auth2', () => {
+        gapi.client
+          .init({
+            apiKey: API_KEY,
+            clientId: CLIENT_ID,
+            scope: SCOPE
+          })
+          .then(() => {
+            // Prompt the user to sign in immediately
+            return gapi.auth2.getAuthInstance().signIn();
+          })
+          .then(() => {
+            console.log('User is signed in. You can now submit the form.');
+          })
+          .catch((error) => {
+            console.error('Error during sign-in or init:', error);
+          });
+      });
+    }
+
+    // Call init() once the page loads
+    window.onload = init;
+  </script>
 </body>
 </html>
