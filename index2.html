@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Message Port Test - Parent</title>
+</head>
+<body>
+  <h1>Parent Page</h1>
+
+  <!-- Iframe that loads child.html -->
+  <iframe id="childFrame" src="child.html" width="400" height="200"></iframe>
+  
+  <div style="margin-top: 1rem;">
+    <button id="sendMessageBtn">Send Message to Child</button>
+    <button id="removeFrameBtn">Remove Iframe Immediately</button>
+  </div>
+
+  <script>
+    // Grab a reference to the iframe's window object
+    const iframeElement = document.getElementById('childFrame');
+    let childWindow = iframeElement.contentWindow;
+
+    // Listen for messages coming back from the child
+    window.addEventListener('message', (event) => {
+      // For security, ensure the message is from the same origin
+      if (event.origin !== window.location.origin) {
+        return;
+      }
+      console.log('Parent received:', event.data);
+    });
+
+    // Send a message to the child when the button is clicked
+    document.getElementById('sendMessageBtn').addEventListener('click', () => {
+      if (childWindow) {
+        console.log('Parent sending message: "Hello from parent"');
+        childWindow.postMessage('Hello from parent', window.location.origin);
+      }
+    });
+
+    // Remove the iframe before the child responds
+    // This can cause "message port closed" or similar errors in some browsers
+    document.getElementById('removeFrameBtn').addEventListener('click', () => {
+      console.log('Removing iframe before response...');
+      iframeElement.remove();
+      childWindow = null;
+    });
+  </script>
+</body>
+</html>
