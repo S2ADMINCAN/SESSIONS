@@ -2,27 +2,23 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Message Port Test - Child</title>
+  <title>Child Messaging Test</title>
 </head>
 <body>
-  <h2>Child Iframe</h2>
-  <p>Open your browser's DevTools console to see messages.</p>
-
+  <h2>Child Page (child.html)</h2>
+  <p>Open your browser's console to view messages.</p>
   <script>
     // Listen for messages from the parent
     window.addEventListener('message', (event) => {
-      // Verify the message is from the same origin
-      if (event.origin !== window.location.origin) {
-        return;
-      }
+      // For security, ensure the message is from the same origin
+      if (event.origin !== window.location.origin) return;
       console.log('Child received:', event.data);
-
-      // Simulate an asynchronous operation before responding
+      
+      // Simulate an asynchronous response after 3 seconds
       setTimeout(() => {
-        // Try to respond after 2 seconds
-        console.log('Child responding after delay: "Hello from child"');
-        event.source.postMessage('Hello from child', event.origin);
-      }, 2000);
+        console.log('Child: Sending response "Hello from Child!"');
+        event.source.postMessage('Hello from Child!', event.origin);
+      }, 3000);
     });
   </script>
 </body>
