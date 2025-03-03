@@ -147,24 +147,19 @@
 
     // Initialize the Google API client & sign in user
     function init() {
-      gapi.load('client:auth2', () => {
-        gapi.client
-          .init({
-            apiKey: API_KEY,
-            clientId: CLIENT_ID,
-            scope: SCOPE
-          })
-          .then(() => {
-            // Prompt the user to sign in immediately
-            return gapi.auth2.getAuthInstance().signIn();
-          })
-          .then(() => {
-            console.log('User is signed in. You can now submit the form.');
-          })
-          .catch((error) => {
-            console.error('Error during sign-in or init:', error);
-          });
-      });
+gapi.load('client:auth2', () => {
+  gapi.client.init({
+    apiKey: API_KEY,
+    clientId: CLIENT_ID,
+    scope: SCOPE
+  }).then(() => {
+    // Now gapi.auth2 is defined
+    return gapi.auth2.getAuthInstance().signIn();
+  }).then(() => {
+    console.log("Signed in!");
+  });
+});
+
     }
 
     // Call init() once the page loads
