@@ -84,81 +84,113 @@
             <label for="studentCharged">Student Charged:</label>
             <input type="checkbox" id="studentCharged"><br>
             
-            <center></center><button type="submit">Submit</button>
+            <center><button type="submit">Submit</button></center>
         </form>
     </div>
     
-    <script src="https://apis.google.com/js/api.js"></script>
     <script>
-        const CLIENT_ID = '110744525010-34st0v7r172u2uerpi2e3j1ghkk555qk.apps.googleusercontent.com'; // OAuth Client ID
-        const API_KEY = 'AIzaSyBfkl02IsZznHMlkNhyqzDQr4TfUJc6-Bw'; // API Key
+        const CLIENT_ID = '110744525010-34st0v7r172u2uerpi2e3j1ghkk555qk.apps.googleusercontent.com'; // Replace with your OAuth Client ID
+        const API_KEY = 'AIzaSyBfkl02IsZznHMlkNhyqzDQr4TfUJc6-Bw'; // Replace with your API key
         const SCOPE = 'https://www.googleapis.com/auth/spreadsheets';
-        const SPREADSHEET_ID = '1Mj5WJU8NhcAjbvGbia3S8Uo74ng_zKo8mJSE3ANy7lM'; // Google Sheets ID
-        const RANGE = 'Sheet1!A2:K'; // Range in your Google Sheets to update
+        const SPREADSHEET_ID = '1Mj5WJU8NhcAjbvGbia3S8Uo74ng_zKo8mJSE3ANy7lM'; // Replace with your Google Sheets ID
+        const RANGE = 'Sheet1!A2:G'; // Replace with the range where you want to insert the data
 
-        // Load the Google API client
-        function gapiLoad() {
-            gapi.client.init({
-                apiKey: API_KEY,
-                clientId: CLIENT_ID,
-                scope: SCOPE,
-            }).then(() => {
-                console.log("GAPI client initialized.");
-            }).catch((error) => {
-                console.error("Error loading GAPI client:", error);
-            });
-        }
+        document.getElementById('date').value = new Date().toISOString().split('T')[0];
+
+        // Student data mapping
+        const studentData = {
+            'Isaac': { tutor: 'Ryan', price: '30', s2Fee: '2' },
+            'Sophie': { tutor: 'Ryan', price: '30', s2Fee: '6' },
+            'Declan': { tutor: 'Ryan', price: '30', s2Fee: '6' },
+            'Isla': { tutor: 'Nick', price: '35', s2Fee: '7' },
+            'Cameryn': { tutor: 'Nick', price: '30', s2Fee: '4' },
+            'Clare': { tutor: 'Nick', price: '40', s2Fee: '8' },
+            'Munreet': { tutor: 'Jonah', price: '30', s2Fee: '6' },
+            'Ikjot': { tutor: 'Ryan', price: '30', s2Fee: '6' },
+            'Cassidy': { tutor: 'Ryan', price: '30', s2Fee: '6' }
+        };
+
+        // Automatically fill other fields when a student is selected
+        document.getElementById('student').addEventListener('change', function() {
+            const selectedStudent = this.value.split(',')[0];
+            
+            // Set tutor, price, and s2Fee
+            const studentInfo = studentData[selectedStudent];
+            if (studentInfo) {
+                document.getElementById('tutor').value = studentInfo.tutor;
+                document.getElementById('price').value = studentInfo.price;
+                document.getElementById('s2Fee').value = studentInfo.s2Fee;
+            }
+
+            // Reset checkboxes
+            document.getElementById('tutorPaid').checked = false;
+            document.getElementById('studentCharged').checked = false;
+        });
 
         // Handle form submission
         document.getElementById('sessionForm').addEventListener('submit', function(e) {
             e.preventDefault(); // Prevent form submission
 
-            // Collect the data from the form
+            // Collect the data
             const student = document.getElementById('student').value.split(',')[0];
             const tutor = document.getElementById('tutor').value;
             const date = document.getElementById('date').value;
             const price = document.getElementById('price').value;
             const s2Fee = document.getElementById('s2Fee').value;
-            const tutorPaid = document.getElementById('tutorPaid').checked ? 'TRUE' : 'FALSE';
-            const studentCharged = document.getElementById('studentCharged').checked ? 'TRUE' : 'FALSE';
+            const tutorPaid = document.getElementById('tutorPaid').checked ? 'Yes' : 'No';
+            const studentCharged = document.getElementById('studentCharged').checked ? 'Yes' : 'No';
 
-            const values = [
-                [
-                    date,              // Date and Time
-                    student,           // Student
-                    '',                // Email (leave blank if not used)
-                    tutor,             // Tutor
-                    1,                 // Session Length (set to 1)
-                    '',                // Hours Traveled (leave blank)
-                    price,             // Price
-                    s2Fee,             // S2 Fee
-                    tutorPaid,         // Tutor Paid (boolean)
-                    studentCharged,    // Client Charged (boolean)
-                    ''                 // Notes (leave blank)
-                ]
+            const sessionData = [
+                [date, student, tutor, price, s2Fee, tutorPaid, studentCharged]
             ];
 
-            const requestBody = {
-                values: values
-            };
-
-            // Make the API call to update Google Sheets
-            gapi.client.sheets.spreadsheets.values.update({
-                spreadsheetId: SPREADSHEET_ID,
-                range: RANGE,
-                valueInputOption: 'USER_ENTERED',
-                resource: requestBody
-            }).then((response) => {
-                console.log("Sheet updated:", response);
-                alert("Session logged successfully.");
-            }).catch((error) => {
-                console.error("Error updating sheet:", error);
-                alert("Error logging session.");
-            });
+            // Call the Google Sheets API to append the session data
+            appendToSheet(sessionData);
         });
 
-        // Load the API client when the page is ready
-        gapi.load('client:auth2', gapiLoad);
+        // Function to append data to Google Sheets
+        function appendToSheet(sessionData) {
+            gapi.client.init({
+                apiKey: API_KEY,
+                clientId: CLIENT_ID,
+                scope: SCOPE
+            }).then(function() {
+                const params = {
+                    spreadsheetId: SPREADSHEET_ID,
+                    range: RANGE,
+                    valueInputOption: 'RAW'
+                };
+                const valueRangeBody = {
+                    values: sessionData
+                };
+
+                const request = gapi.client.sheets.spreadsheets.values.append(params, valueRangeBody);
+                request.then(function(response) {
+                    console.log('Data appended successfully!', response);
+                    alert('Session logged successfully.');
+                }, function(reason) {
+                    console.error('Error appending data: ' + reason.result.error.message);
+                });
+            });
+        }
+
+        // Load the Google API client
+        function loadClient() {
+            gapi.load('client:auth2', initClient);
+        }
+
+        // Initialize the Google API client
+        function initClient() {
+            gapi.client.init({
+                apiKey: API_KEY,
+                clientId: CLIENT_ID,
+                scope: SCOPE
+            }).then(function() {
+                console.log('Google API Client initialized');
+            });
+        }
     </script>
+
+    <script async defer src="https://apis.google.com/js/api.js" onload="loadClient()"></script>
 </body>
 </html>
