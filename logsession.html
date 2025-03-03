@@ -35,14 +35,25 @@
         input[type="checkbox"] {
             margin-left: 10px;
         }
+        button {
+            background-color: #555;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #777;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>Log Tutoring Session</h2>
-        <form>
+        <form id="sessionForm">
             <label for="student">Student:</label>
-            <select id="student">
+            <select id="student" required>
                 <option value="" disabled selected>Select a student</option>
                 <option value="Isaac,Ryan,30,2">Isaac</option>
                 <option value="Sophie,Ryan,30,6">Sophie</option>
@@ -56,22 +67,24 @@
             </select><br>
             
             <label for="tutor">Tutor:</label>
-            <input type="text" id="tutor"><br>
+            <input type="text" id="tutor" required><br>
             
             <label for="date">Date:</label>
-            <input type="text" id="date" value=""><br>
+            <input type="text" id="date" required><br>
             
             <label for="price">Price:</label>
-            <input type="text" id="price"><br>
+            <input type="text" id="price" required><br>
             
             <label for="s2Fee">S2 Fee:</label>
-            <input type="text" id="s2Fee"><br>
+            <input type="text" id="s2Fee" required><br>
             
             <label for="tutorPaid">Tutor Paid:</label>
             <input type="checkbox" id="tutorPaid"><br>
             
             <label for="studentCharged">Student Charged:</label>
             <input type="checkbox" id="studentCharged"><br>
+            
+            <button type="submit">Submit</button>
         </form>
     </div>
     
@@ -86,6 +99,28 @@
             document.getElementById('s2Fee').value = selectedData[3];
             document.getElementById('tutorPaid').checked = false;
             document.getElementById('studentCharged').checked = false;
+        });
+
+        // Handle form submission
+        document.getElementById('sessionForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent form submission
+
+            // Collect the data
+            const student = document.getElementById('student').value.split(',')[0];
+            const tutor = document.getElementById('tutor').value;
+            const date = document.getElementById('date').value;
+            const price = document.getElementById('price').value;
+            const s2Fee = document.getElementById('s2Fee').value;
+            const tutorPaid = document.getElementById('tutorPaid').checked ? 'Yes' : 'No';
+            const studentCharged = document.getElementById('studentCharged').checked ? 'Yes' : 'No';
+
+            const sessionData = `${student},${tutor},${date},${price},${s2Fee},${tutorPaid},${studentCharged}\n`;
+
+            // Send data to the backend or log it to a file
+            console.log('Session Data:', sessionData);
+            alert('Session logged successfully.');
+
+            // Here you would use a backend technology to save the data to loggedsessions.txt
         });
     </script>
 </body>
