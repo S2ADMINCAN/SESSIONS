@@ -1,44 +1,63 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Parent Messaging Test (index.html)</title>
+  <meta charset="UTF-8">
+  <title>Test Google Sheets API Communication</title>
 </head>
 <body>
-  <h1>Parent Page (index.html)</h1>
-  <!-- Load the child page in an iframe -->
-  <iframe id="childFrame" src="child.html" width="600" height="300"></iframe>
+  <h1>Google Sheets API Test</h1>
+  <button id="testApiBtn">Test Sheets API</button>
+  <pre id="output" style="background: #f0f0f0; padding: 10px;"></pre>
   
-  <div style="margin-top: 1rem;">
-    <button id="sendMessageBtn">Send Message to Child</button>
-    <button id="removeIframeBtn">Remove Iframe Immediately</button>
-  </div>
-
+  <!-- Load the Google API client library -->
+  <script src="https://apis.google.com/js/api.js"></script>
   <script>
-    const iframe = document.getElementById('childFrame');
-    let childWindow = iframe.contentWindow;
+    // Replace with your own credentials:
+    const CLIENT_ID = '110744525010-34st0v7r172u2uerpi2e3j1ghkk555qk.apps.googleusercontent.com';
+    const API_KEY = 'AIzaSyBfkl02IsZznHMlkNhyqzDQr4TfUJc6-Bw';
+    const SCOPE = 'https://www.googleapis.com/auth/spreadsheets';
+    const SPREADSHEET_ID = '1Mj5WJU8NhcAjbvGbia3S8Uo74ng_zKo8mJSE3ANy7lM';
+    // Test range to read from your sheet – adjust as needed
+    const TEST_RANGE = 'Sheet1!A1:Z1';
 
-    // Listen for messages from the child
-    window.addEventListener('message', (event) => {
-      // For security, ensure the message is from the same origin
-      if (event.origin !== window.location.origin) return;
-      console.log('Parent received:', event.data);
-    });
+    // Initialize the Google API client
+    function initClient() {
+      gapi.client.init({
+        apiKey: API_KEY,
+        clientId: CLIENT_ID,
+        scope: SCOPE,
+        discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4'],
+      }).then(() => {
+        console.log("GAPI client initialized");
+        // Sign in the user (this will trigger a popup if not already signed in)
+        return gapi.auth2.getAuthInstance().signIn();
+      }).then(() => {
+        console.log("User signed in successfully");
+      }).catch((err) => {
+        console.error("Error during initialization or sign-in:", err);
+        document.getElementById("output").innerText = "Initialization error: " + err.error;
+      });
+    }
 
-    // Send a message to the child when the button is clicked
-    document.getElementById('sendMessageBtn').addEventListener('click', () => {
-      if (childWindow) {
-        console.log('Parent: Sending message "Hello from Parent!"');
-        childWindow.postMessage('Hello from Parent!', window.location.origin);
-      }
-    });
+    // Function to test the Sheets API by reading a range from the spreadsheet
+    function testSheetsAPI() {
+      gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: TEST_RANGE,
+      }).then((response) => {
+        console.log("Sheets API response:", response);
+        document.getElementById("output").innerText = JSON.stringify(response.result, null, 2);
+      }).catch((err) => {
+        console.error("Error calling Sheets API:", err);
+        document.getElementById("output").innerText = "Error: " + (err.result && err.result.error ? err.result.error.message : err);
+      });
+    }
 
-    // Remove the iframe immediately to simulate the message port closing before a response is received
-    document.getElementById('removeIframeBtn').addEventListener('click', () => {
-      console.log('Parent: Removing iframe immediately.');
-      iframe.remove();
-      childWindow = null;
-    });
+    // Load the API client and auth2 library, then initialize the client
+    gapi.load("client:auth2", initClient);
+
+    // Add click event listener to the test button
+    document.getElementById("testApiBtn").addEventListener("click", testSheetsAPI);
   </script>
 </body>
 </html>
