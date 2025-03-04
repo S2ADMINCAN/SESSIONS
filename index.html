@@ -1,107 +1,91 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Google Sheets API Test with New GIS</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>S2 Tutor Centre</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: black;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            text-align: center;
+            background-color: #1c1c1c;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+            width: 300px;
+        }
+        h1 {
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+        input[type="password"] {
+            padding: 10px;
+            width: calc(100% - 20px);
+            margin-left: -10px; /* Moves the input slightly to the left */
+            margin-bottom: 20px;
+            border: 1px solid white;
+            background-color: #1c1c1c;
+            color: white;
+            font-size: 1em;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            background-color: white;
+            color: black;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #ccc;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
 </head>
 <body>
-  <h1>Google Sheets API Test (New GIS)</h1>
-  <button id="signInBtn">Sign In & Get Access Token</button>
-  <button id="appendDataBtn">Append Data to Sheet</button>
-  <pre id="output" style="background: #f0f0f0; padding: 1em;"></pre>
-  
-  <!-- Load new Google Identity Services library -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <!-- Load the Google API client library (for Sheets API calls) -->
-  <script src="https://apis.google.com/js/api.js"></script>
-  
-  <script>
-    // Replace with your own credentials:
-    const CLIENT_ID = '110744525010-34st0v7r172u2uerpi2e3j1ghkk555qk.apps.googleusercontent.com';
-    const API_KEY = 'AIzaSyBfkl02IsZznHMlkNhyqzDQr4TfUJc6-Bw';
-    const SCOPE = 'https://www.googleapis.com/auth/spreadsheets';
-    const SPREADSHEET_ID = '1Mj5WJU8NhcAjbvGbia3S8Uo74ng_zKo8mJSE3ANy7lM';
-    const DISCOVERY_DOC = 'https://sheets.googleapis.com/$discovery/rest?version=v4';
-    
-    let accessToken = null;
-    let tokenClient;
-    
-    // Initialize the gapi client (for Sheets API)
-    function initGapiClient() {
-      return gapi.client.init({
-        apiKey: API_KEY,
-        discoveryDocs: [DISCOVERY_DOC],
-      });
-    }
-    
-    // Log messages to the output <pre> element
-    function logOutput(message) {
-      const output = document.getElementById('output');
-      output.textContent = message;
-      console.log(message);
-    }
-    
-    // Function to request an access token using the new GIS library
-    function requestAccessToken() {
-      tokenClient.requestAccessToken();
-    }
-    
-    // Append data to the Google Sheet
-    function appendData() {
-      if (!accessToken) {
-        logOutput("Please sign in to get an access token first.");
-        return;
-      }
-      
-      // Set the access token on the gapi client
-      gapi.client.setToken({ access_token: accessToken });
-      
-      const values = [
-        ["Test Data", new Date().toString()]
-      ];
-      const body = { values: values };
-      
-      gapi.client.sheets.spreadsheets.values.append({
-        spreadsheetId: SPREADSHEET_ID,
-        range: "Sheet1!A2", // Adjust the range as needed
-        valueInputOption: "RAW",
-        resource: body
-      }).then((response) => {
-        logOutput("Data appended successfully:\n" + JSON.stringify(response.result, null, 2));
-      }).catch((error) => {
-        logOutput("Error appending data:\n" + JSON.stringify(error, null, 2));
-      });
-    }
-    
-    // Load the gapi client and initialize it, then set up the token client
-    window.onload = function() {
-      // Load gapi client (for Sheets API)
-      gapi.load('client', () => {
-        initGapiClient().then(() => {
-          logOutput("GAPI client initialized for Sheets API.");
-        }).catch((error) => {
-          logOutput("Error initializing GAPI client:\n" + JSON.stringify(error, null, 2));
+    <div class="container">
+        <h1>S2 Tutoring Tutor Centre</h1>
+        <form id="loginForm">
+            <input type="password" id="password" placeholder="Enter Password">
+            <button type="submit">Login</button>
+            <p class="error" id="error">Incorrect Password. Try Again.</p>
+        </form>
+    </div>
+
+    <script>
+        const form = document.getElementById('loginForm');
+        const passwordInput = document.getElementById('password');
+        const errorMessage = document.getElementById('error');
+
+        form.addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent form submission
+
+            const correctPassword = 'UOM'; // Correct password set to "UOM"
+            const enteredPassword = passwordInput.value;
+
+            if (enteredPassword === correctPassword) {
+                window.location.href = 'tutorcentre.html'; // Redirect if correct
+            } else {
+                errorMessage.style.display = 'block'; // Show error if incorrect
+            }
         });
-      });
-      
-      // Initialize the token client using the new GIS library
-      tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID,
-        scope: SCOPE,
-        callback: (response) => {
-          if (response.error) {
-            logOutput("Error obtaining access token:\n" + JSON.stringify(response, null, 2));
-            return;
-          }
-          accessToken = response.access_token;
-          logOutput("Access token obtained:\n" + accessToken);
-        }
-      });
-      
-      // Attach event listeners to buttons
-      document.getElementById('signInBtn').addEventListener('click', requestAccessToken);
-      document.getElementById('appendDataBtn').addEventListener('click', appendData);
-    };
-  </script>
+    </script>
 </body>
 </html>
