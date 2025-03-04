@@ -3,13 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Log Tutoring Session</title>
+  <title>STUDENTS SQUARED TUTORING - OTTAWA, ON</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       margin: 20px;
       background-color: black;
       color: white;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
     .container {
       max-width: 600px;
@@ -18,12 +21,14 @@
       border: 1px solid #ccc;
       border-radius: 10px;
       background-color: #333;
+      flex: 1;
     }
     label {
       font-weight: bold;
     }
     input[type="text"],
     input[type="number"],
+    input[type="date"],
     select {
       width: 100%;
       padding: 8px;
@@ -53,11 +58,17 @@
       margin-top: 10px;
       font-weight: bold;
     }
+    footer {
+      text-align: center;
+      padding: 10px;
+      font-size: 0.8em;
+      color: #aaa;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>Log Tutoring Session</h2>
+    <h2>STUDENTS SQUARED TUTORING - OTTAWA, ON</h2>
     <form id="sessionForm">
       <label for="student">Student:</label>
       <select id="student" required>
@@ -81,14 +92,15 @@
       <label for="tutor">Tutor:</label>
       <input type="text" id="tutor" required readonly /><br />
 
+      <!-- Date field is now type="date" and changeable -->
       <label for="date">Date:</label>
-      <input type="text" id="date" required readonly /><br />
+      <input type="date" id="date" required /><br />
 
-      <!-- New input for Session Length -->
+      <!-- Input for Session Length -->
       <label for="sessionLength">Session Length (Hrs):</label>
       <input type="number" id="sessionLength" required value="1" min="0.1" step="0.1"/><br />
 
-      <!-- New input for Hours Traveled -->
+      <!-- Input for Hours Traveled -->
       <label for="hoursTravelled">Hours Traveled (if applic.):</label>
       <input type="number" id="hoursTravelled" placeholder="Leave blank if none" min="0" step="0.1"/><br />
 
@@ -109,6 +121,8 @@
     </form>
   </div>
 
+  <footer>STUDENTS SQUARED TUTORING - OTTAWA, ON</footer>
+
   <!-- Load the new GIS library -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <!-- Load the Google API client library -->
@@ -124,35 +138,44 @@
 
     let accessToken = null;
     let tokenClient;
-    let basePrice = 0; // Store the original price from the student selection
+    let basePrice = 0;   // Original price from student selection
+    let baseS2Fee = 0;   // Original S2 fee from student selection
 
-    // Set today's date in the "date" field
-    document.getElementById('date').value = new Date().toISOString().split('T')[0];
+    // Set today's date in the "date" field using local time.
+    function setDefaultDate() {
+      const today = new Date();
+      // Format the date as YYYY-MM-DD using local time.
+      const localDate = today.toLocaleDateString('en-CA'); // en-CA gives ISO format date
+      document.getElementById('date').value = localDate;
+    }
+    setDefaultDate();
 
     // Auto-fill fields when a student is selected.
-    // Option value format: Student,Tutor,Email,Price,S2Fee
+    // Option format: Student,Tutor,Email,Price,S2Fee
     document.getElementById('student').addEventListener('change', () => {
       const selectedData = document.getElementById('student').value.split(',');
-      // selectedData[0] = Student, [1] = Tutor, [2] = Email, [3] = Price, [4] = S2 Fee
       document.getElementById('tutor').value = selectedData[1];
       document.getElementById('email').value = selectedData[2];
-      // Save the base price as a number
       basePrice = parseFloat(selectedData[3]);
-      // Set the price field to the base price (formatted to 2 decimals)
+      baseS2Fee = parseFloat(selectedData[4]);
+      // Set price and S2 Fee to their base values
       document.getElementById('price').value = basePrice.toFixed(2);
-      document.getElementById('s2Fee').value = selectedData[4];
+      document.getElementById('s2Fee').value = baseS2Fee.toFixed(2);
       document.getElementById('tutorPaid').checked = false;
       document.getElementById('studentCharged').checked = false;
     });
 
-    // Auto-update the Price field when Session Length is changed.
+    // Auto-update Price and S2 Fee when Session Length changes.
     document.getElementById('sessionLength').addEventListener('input', function() {
       const sessionLength = parseFloat(this.value);
       if (!isNaN(sessionLength) && basePrice > 0) {
         const newPrice = sessionLength * basePrice;
+        const newS2Fee = sessionLength * baseS2Fee;
         document.getElementById('price').value = newPrice.toFixed(2);
+        document.getElementById('s2Fee').value = newS2Fee.toFixed(2);
       } else {
         document.getElementById('price').value = basePrice.toFixed(2);
+        document.getElementById('s2Fee').value = baseS2Fee.toFixed(2);
       }
     });
 
