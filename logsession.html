@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <h1>SESSION LOGGER</h1>
+  <title>STUDENTS SQUARED TUTORING - OTTAWA, ON</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -68,9 +68,11 @@
 </head>
 <body>
   <div class="container">
+    <h2>STUDENTS SQUARED TUTORING - OTTAWA, ON</h2>
     <form id="sessionForm">
       <label for="student">Student:</label>
-      <select id="student" required>
+      <!-- Initially disabled so that names are not accessible until logged in -->
+      <select id="student" required disabled>
         <option value="" disabled selected>Select a student</option>
         <!-- Format: Student,Tutor,Email,Price,S2 Fee -->
         <option value="Isaac,Ryan,N/A,30,2">Isaac</option>
@@ -84,14 +86,14 @@
         <option value="Cassidy,Ryan,cassidyy148@gmail.com,30,6">Cassidy</option>
       </select><br />
 
-      <!-- New Email field auto-filled -->
+      <!-- Auto-filled Email field -->
       <label for="email">E-mail:</label>
       <input type="text" id="email" required readonly /><br />
 
       <label for="tutor">Tutor:</label>
       <input type="text" id="tutor" required readonly /><br />
 
-      <!-- Date field is now type="date" and changeable -->
+      <!-- Date field now changeable -->
       <label for="date">Date:</label>
       <input type="date" id="date" required /><br />
 
@@ -158,25 +160,29 @@
       basePrice = parseFloat(selectedData[3]);
       baseS2Fee = parseFloat(selectedData[4]);
       // Set price and S2 Fee to their base values
-      document.getElementById('price').value = basePrice.toFixed(2);
-      document.getElementById('s2Fee').value = baseS2Fee.toFixed(2);
+      updatePriceAndS2Fee();
       document.getElementById('tutorPaid').checked = false;
       document.getElementById('studentCharged').checked = false;
     });
 
-    // Auto-update Price and S2 Fee when Session Length changes.
-    document.getElementById('sessionLength').addEventListener('input', function() {
-      const sessionLength = parseFloat(this.value);
-      if (!isNaN(sessionLength) && basePrice > 0) {
-        const newPrice = sessionLength * basePrice;
-        const newS2Fee = sessionLength * baseS2Fee;
-        document.getElementById('price').value = newPrice.toFixed(2);
-        document.getElementById('s2Fee').value = newS2Fee.toFixed(2);
-      } else {
-        document.getElementById('price').value = basePrice.toFixed(2);
-        document.getElementById('s2Fee').value = baseS2Fee.toFixed(2);
-      }
-    });
+    // Helper function to update Price and S2 Fee.
+    function updatePriceAndS2Fee() {
+      const sessionLength = parseFloat(document.getElementById('sessionLength').value) || 1;
+      const hoursTravelled = parseFloat(document.getElementById('hoursTravelled').value) || 0;
+      // Calculate extra travel cost: $15 per 0.25 hr = $60 per hour.
+      const extraTravelCost = hoursTravelled * 40;
+      // Final price = session length * basePrice + extra travel cost.
+      const finalPrice = sessionLength * basePrice + extraTravelCost;
+      const finalS2Fee = sessionLength * baseS2Fee;
+      document.getElementById('price').value = finalPrice.toFixed(2);
+      document.getElementById('s2Fee').value = finalS2Fee.toFixed(2);
+    }
+
+    // Update price when session length changes.
+    document.getElementById('sessionLength').addEventListener('input', updatePriceAndS2Fee);
+
+    // Update price when hours travelled changes.
+    document.getElementById('hoursTravelled').addEventListener('input', updatePriceAndS2Fee);
 
     // Validate form inputs and return an array of error messages (if any)
     function validateForm() {
@@ -298,6 +304,8 @@
           }
           accessToken = response.access_token;
           console.log("Access token obtained:", accessToken);
+          // Enable the student dropdown once logged in
+          document.getElementById('student').disabled = false;
           appendData();
         };
         requestAccessToken();
@@ -321,6 +329,8 @@
           }
           accessToken = response.access_token;
           console.log("Access token obtained on load:", accessToken);
+          // Enable the student dropdown once logged in
+          document.getElementById('student').disabled = false;
         }
       });
     };
