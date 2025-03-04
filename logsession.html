@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>SESSION LOGGER</title>
+  <title>STUDENTS SQUARED TUTORING - OTTAWA, ON</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -49,6 +49,7 @@
       border: none;
       border-radius: 5px;
       cursor: pointer;
+      margin: 5px 0;
     }
     button:hover {
       background-color: #777;
@@ -69,6 +70,8 @@
 <body>
   <div class="container">
     <h2>STUDENTS SQUARED TUTORING - OTTAWA, ON</h2>
+    <!-- Login button; user must log in before accessing names -->
+    <button id="loginBtn">Login</button>
     <form id="sessionForm">
       <label for="student">Student:</label>
       <!-- Initially disabled so that names are not accessible until logged in -->
@@ -93,7 +96,7 @@
       <label for="tutor">Tutor:</label>
       <input type="text" id="tutor" required readonly /><br />
 
-      <!-- Date field now changeable -->
+      <!-- Date field is now changeable -->
       <label for="date">Date:</label>
       <input type="date" id="date" required /><br />
 
@@ -169,19 +172,17 @@
     function updatePriceAndS2Fee() {
       const sessionLength = parseFloat(document.getElementById('sessionLength').value) || 1;
       const hoursTravelled = parseFloat(document.getElementById('hoursTravelled').value) || 0;
-      // Calculate extra travel cost: $15 per 0.25 hr = $60 per hour.
-      const extraTravelCost = hoursTravelled * 40;
-      // Final price = session length * basePrice + extra travel cost.
+      // Extra travel cost: $15 for every 0.25 hrs = $60 per hr.
+      const extraTravelCost = hoursTravelled * 60;
+      // Final price = (Session Length * basePrice) + extra travel cost.
       const finalPrice = sessionLength * basePrice + extraTravelCost;
       const finalS2Fee = sessionLength * baseS2Fee;
       document.getElementById('price').value = finalPrice.toFixed(2);
       document.getElementById('s2Fee').value = finalS2Fee.toFixed(2);
     }
 
-    // Update price when session length changes.
+    // Update price when session length or hours travelled changes.
     document.getElementById('sessionLength').addEventListener('input', updatePriceAndS2Fee);
-
-    // Update price when hours travelled changes.
     document.getElementById('hoursTravelled').addEventListener('input', updatePriceAndS2Fee);
 
     // Validate form inputs and return an array of error messages (if any)
@@ -306,12 +307,32 @@
           console.log("Access token obtained:", accessToken);
           // Enable the student dropdown once logged in
           document.getElementById('student').disabled = false;
+          // Disable the login button after login
+          document.getElementById('loginBtn').disabled = true;
           appendData();
         };
         requestAccessToken();
       } else {
         appendData();
       }
+    });
+
+    // Attach event listener to the login button.
+    document.getElementById('loginBtn').addEventListener('click', () => {
+      tokenClient.callback = (response) => {
+        if (response.error) {
+          console.error("Error obtaining access token:", response);
+          alert("Error obtaining access token.");
+          return;
+        }
+        accessToken = response.access_token;
+        console.log("Access token obtained:", accessToken);
+        // Enable the student dropdown once logged in
+        document.getElementById('student').disabled = false;
+        // Disable the login button after login
+        document.getElementById('loginBtn').disabled = true;
+      };
+      requestAccessToken();
     });
 
     // On window load, initialize the gapi client and token client.
@@ -322,16 +343,8 @@
       tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
         scope: SCOPE,
-        callback: (response) => {
-          if (response.error) {
-            console.error("Error obtaining access token:", response);
-            return;
-          }
-          accessToken = response.access_token;
-          console.log("Access token obtained on load:", accessToken);
-          // Enable the student dropdown once logged in
-          document.getElementById('student').disabled = false;
-        }
+        // Set an empty callback initially; will be overwritten by the login button.
+        callback: () => {}
       });
     };
   </script>
