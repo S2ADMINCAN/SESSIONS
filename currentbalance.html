@@ -20,9 +20,9 @@
       border-radius: 8px;
     }
     input[type="text"] {
-      width: 80%;
+      width: 60%;
       padding: 8px;
-      margin: 10px 0;
+      margin: 10px;
       border: none;
       border-radius: 4px;
     }
@@ -52,39 +52,25 @@
 <body>
   <div class="container">
     <h2>Current Balance</h2>
-    <!-- Login button -->
-    <div>
-      <button id="loginBtn">Login</button>
-    </div>
-    <!-- Search input and button (disabled until logged in) -->
-    <div>
-      <input type="text" id="studentSearch" placeholder="Enter student name" disabled />
-      <button id="searchBtn" disabled>Check Balance</button>
-    </div>
-    <!-- Area to display the balance result -->
+    <p>Enter a student name to see their current balance (only sessions where Client Charged is "No" are tallied).</p>
+    <input type="text" id="studentSearch" placeholder="Enter student name" />
+    <button id="searchBtn">Check Balance</button>
     <div id="result"></div>
   </div>
   <footer>ALEC FRASER - STUDENTS SQUARED TUTORING - OTTAWA, ON</footer>
 
-  <!-- Load the new GIS library -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <!-- Load the Google API client library -->
   <script src="https://apis.google.com/js/api.js"></script>
   <script>
     // Replace with your own credentials:
-    const CLIENT_ID = '110744525010-34st0v7r172u2uerpi2e3j1ghkk555qk.apps.googleusercontent.com';
     const API_KEY = 'AIzaSyBfkl02IsZznHMlkNhyqzDQr4TfUJc6-Bw';
-    // Read-only scope for reading spreadsheet data
-    const SCOPE = 'https://www.googleapis.com/auth/spreadsheets.readonly';
+    // Spreadsheet must be published to the web for API-key access.
     const SPREADSHEET_ID = '1Mj5WJU8NhcAjbvGbia3S8Uo74ng_zKo8mJSE3ANy7lM';
-    // We assume the data (with headers) is in the range below.
+    // Adjust the range to cover your sheet. We assume headers are in row 1.
     const RANGE = 'Sheet1!A1:Z';
     const DISCOVERY_DOC = 'https://sheets.googleapis.com/$discovery/rest?version=v4';
 
-    let accessToken = null;
-    let tokenClient;
-
-    // Initialize the gapi client for Sheets API.
+    // Initialize the Google API client
     function initGapiClient() {
       return gapi.client.init({
         apiKey: API_KEY,
@@ -96,40 +82,26 @@
       });
     }
 
-    // Request an access token using the new GIS token client.
-    function requestAccessToken() {
-      tokenClient.requestAccessToken();
-    }
-
-    // Function to fetch the sessions data from the spreadsheet.
+    // Function to fetch sessions data from the spreadsheet
     function fetchSessionsData() {
-      if (!accessToken) {
-        alert("Please log in first.");
-        return;
-      }
-      gapi.client.setToken({ access_token: accessToken });
       return gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
         range: RANGE,
       });
     }
 
-    // Function to filter sessions and sum the price for a given student if "Client Charged" is "No".
+    // Function to filter sessions by student name and sum the Price for rows where Client Charged is "No"
     function calculateBalance(data, searchName) {
-      // Assume the header row is row 1.
-      const headers = data[0];
-      // Column indices (0-indexed):
-      // Student is column index 1, Price is column index 6, Client Charged is column index 9.
+      // Assuming the spreadsheet header row is:
+      // Date, Student, E-mail, Tutor, Session Length, Hours Traveled, Price, S2 Fee, Tutor Paid, Client Charged, Notes
       let total = 0;
-      // Loop through the data rows
       for (let i = 1; i < data.length; i++) {
-        let row = data[i];
-        // Check if the student's name in the row matches the search (case-insensitive, partial match allowed)
+        const row = data[i];
+        // Check if the student name (column 2, index 1) contains the search string (case-insensitive)
         if (row[1] && row[1].toLowerCase().includes(searchName.toLowerCase())) {
-          // Only add the price if the "Client Charged" column is "No" (we assume negative means not charged)
+          // Only add the Price (column 7, index 6) if Client Charged (column 10, index 9) is "No"
           if (row[9] && row[9].trim().toLowerCase() === "no") {
-            // Convert the Price to a number and add it to total.
-            let price = parseFloat(row[6]);
+            const price = parseFloat(row[6]);
             if (!isNaN(price)) {
               total += price;
             }
@@ -139,7 +111,7 @@
       return total;
     }
 
-    // Function to perform the search and display the current balance.
+    // Function to perform the search and display the balance.
     function searchBalance() {
       const searchName = document.getElementById('studentSearch').value.trim();
       if (searchName === "") {
@@ -149,11 +121,11 @@
       fetchSessionsData().then((response) => {
         const data = response.result.values;
         if (!data || data.length === 0) {
-          document.getElementById('result').innerHTML = "<p>No sessions data found.</p>";
+          document.getElementById("result").innerHTML = "<p>No session data found.</p>";
           return;
         }
         const balance = calculateBalance(data, searchName);
-        document.getElementById('result').innerHTML = `<p>Current balance for <strong>${searchName}</strong>: $${balance.toFixed(2)}</p>`;
+        document.getElementById("result").innerHTML = `<p>Current balance for <strong>${searchName}</strong>: $${balance.toFixed(2)}</p>`;
       }).catch((error) => {
         console.error("Error fetching sessions data:", error);
         alert("Failed to fetch sessions data.");
@@ -163,38 +135,9 @@
     // Attach event listener to the search button.
     document.getElementById('searchBtn').addEventListener('click', searchBalance);
 
-    // Attach event listener to the login button.
-    document.getElementById('loginBtn').addEventListener('click', () => {
-      tokenClient.callback = (response) => {
-        if (response.error) {
-          console.error("Error obtaining access token:", response);
-          alert("Error obtaining access token.");
-          return;
-        }
-        accessToken = response.access_token;
-        console.log("Access token obtained:", accessToken);
-        // Change login button text to ":)" and disable it.
-        const loginBtn = document.getElementById('loginBtn');
-        loginBtn.textContent = ":)";
-        loginBtn.disabled = true;
-        // Enable the search input and search button.
-        document.getElementById('studentSearch').disabled = false;
-        document.getElementById('searchBtn').disabled = false;
-      };
-      requestAccessToken();
-    });
-
-    // On window load, initialize the gapi client and token client.
+    // On window load, initialize the gapi client.
     window.onload = function() {
-      gapi.load("client", () => {
-        initGapiClient();
-      });
-      tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID,
-        scope: SCOPE,
-        // Initially, set an empty callback. It will be overwritten when the user clicks "Login".
-        callback: () => {}
-      });
+      gapi.load('client', initGapiClient);
     };
   </script>
 </body>
