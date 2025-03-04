@@ -62,7 +62,7 @@
       <label for="student">Student:</label>
       <select id="student" required>
         <option value="" disabled selected>Select a student</option>
-        <!-- Format: Student, Tutor, Email, Price, S2 Fee -->
+        <!-- Format: Student,Tutor,Email,Price,S2 Fee -->
         <option value="Isaac,Ryan,N/A,30,2">Isaac</option>
         <option value="Sophie,Ryan,sophiehenri613@gmail.com,30,6">Sophie</option>
         <option value="Declan,Ryan,declanhagley@gmail.com,30,6">Declan</option>
@@ -124,6 +124,7 @@
 
     let accessToken = null;
     let tokenClient;
+    let basePrice = 0; // Store the original price from the student selection
 
     // Set today's date in the "date" field
     document.getElementById('date').value = new Date().toISOString().split('T')[0];
@@ -135,10 +136,24 @@
       // selectedData[0] = Student, [1] = Tutor, [2] = Email, [3] = Price, [4] = S2 Fee
       document.getElementById('tutor').value = selectedData[1];
       document.getElementById('email').value = selectedData[2];
-      document.getElementById('price').value = selectedData[3];
+      // Save the base price as a number
+      basePrice = parseFloat(selectedData[3]);
+      // Set the price field to the base price (formatted to 2 decimals)
+      document.getElementById('price').value = basePrice.toFixed(2);
       document.getElementById('s2Fee').value = selectedData[4];
       document.getElementById('tutorPaid').checked = false;
       document.getElementById('studentCharged').checked = false;
+    });
+
+    // Auto-update the Price field when Session Length is changed.
+    document.getElementById('sessionLength').addEventListener('input', function() {
+      const sessionLength = parseFloat(this.value);
+      if (!isNaN(sessionLength) && basePrice > 0) {
+        const newPrice = sessionLength * basePrice;
+        document.getElementById('price').value = newPrice.toFixed(2);
+      } else {
+        document.getElementById('price').value = basePrice.toFixed(2);
+      }
     });
 
     // Validate form inputs and return an array of error messages (if any)
