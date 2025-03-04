@@ -2,26 +2,34 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Test Google Sheets API Communication</title>
-  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://www.gstatic.com https://apis.google.com; object-src 'none';">
+  <title>Google Sheets Permission Test</title>
 </head>
 <body>
-  <h1>Google Sheets API Test</h1>
-  <button id="testApiBtn">Test Sheets API</button>
-  <pre id="output" style="background: #f0f0f0; padding: 10px;"></pre>
+  <h1>Test Google Sheets Permissions</h1>
   
+  <!-- Buttons for different actions -->
+  <button id="signInBtn">Sign In</button>
+  <button id="checkUserBtn">Check Signed-in User</button>
+  <button id="appendDataBtn">Append Data to Sheet</button>
+  
+  <pre id="output" style="background: #f0f0f0; padding: 1em;"></pre>
+
   <!-- Load the Google API client library -->
   <script src="https://apis.google.com/js/api.js"></script>
   <script>
-    // Replace with your own credentials:
+    // TODO: Replace with your own credentials
     const CLIENT_ID = '110744525010-34st0v7r172u2uerpi2e3j1ghkk555qk.apps.googleusercontent.com';
     const API_KEY = 'AIzaSyBfkl02IsZznHMlkNhyqzDQr4TfUJc6-Bw';
     const SCOPE = 'https://www.googleapis.com/auth/spreadsheets';
-    const SPREADSHEET_ID = '1Mj5WJU8NhcAjbvGbia3S8Uo74ng_zKo8mJSE3ANy7lM';
-    // Test range to read from your sheet – adjust as needed
-    const TEST_RANGE = 'Sheet1!A1:Z1';
+    const SPREADSHEET_ID = '1Mj5WJU8NhcAjbvGbia3S8Uo74ng_zKo8mJSE3ANy7lM'; // e.g. "1Mj5WJU8NhcAjbvGbia3S8Uo74ng_zKo8mJSE3ANy7lM"
+    const RANGE = 'Sheet1!A2'; // Where you want to append data
 
-    // Initialize the Google API client
+    // Initialize the API client when the library is loaded
+    function onGapiLoad() {
+      gapi.load('client:auth2', initClient);
+    }
+
+    // Set up the client with your API key and Client ID, then log or handle any errors
     function initClient() {
       gapi.client.init({
         apiKey: API_KEY,
@@ -29,36 +37,81 @@
         scope: SCOPE,
         discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4'],
       }).then(() => {
-        console.log("GAPI client initialized");
-        // Sign in the user (this will trigger a popup if not already signed in)
-        return gapi.auth2.getAuthInstance().signIn();
-      }).then(() => {
-        console.log("User signed in successfully");
-      }).catch((err) => {
-        console.error("Error during initialization or sign-in:", err);
-        document.getElementById("output").innerText = "Initialization error: " + err.error;
+        logOutput('GAPI client initialized. Ready for sign-in.');
+      }).catch((error) => {
+        logOutput('Error initializing GAPI client:\n' + JSON.stringify(error, null, 2));
       });
     }
 
-    // Function to test the Sheets API by reading a range from the spreadsheet
-    function testSheetsAPI() {
-      gapi.client.sheets.spreadsheets.values.get({
+    // Sign the user in
+    function signIn() {
+      const authInstance = gapi.auth2.getAuthInstance();
+      if (!authInstance) {
+        logOutput('Auth instance not ready. Make sure initClient ran successfully.');
+        return;
+      }
+      authInstance.signIn().then(() => {
+        logOutput('User signed in successfully.');
+      }).catch((error) => {
+        logOutput('Sign-in error:\n' + JSON.stringify(error, null, 2));
+      });
+    }
+
+    // Check which user is currently signed in
+    function checkUser() {
+      const authInstance = gapi.auth2.getAuthInstance();
+      if (!authInstance) {
+        logOutput('Auth instance not ready.');
+        return;
+      }
+      const user = authInstance.currentUser.get();
+      if (user && user.isSignedIn()) {
+        const profile = user.getBasicProfile();
+        const email = profile.getEmail();
+        logOutput('Currently signed in as: ' + email);
+      } else {
+        logOutput('No user is signed in.');
+      }
+    }
+
+    // Append a row of data to your Google Sheet
+    function appendData() {
+      const now = new Date().toString();
+      const values = [
+        // Adjust the data here as needed
+        ['Test from minimal page', now]
+      ];
+
+      const body = {
+        values: values
+      };
+
+      gapi.client.sheets.spreadsheets.values.append({
         spreadsheetId: SPREADSHEET_ID,
-        range: TEST_RANGE,
+        range: RANGE,
+        valueInputOption: 'RAW',
+        resource: body
       }).then((response) => {
-        console.log("Sheets API response:", response);
-        document.getElementById("output").innerText = JSON.stringify(response.result, null, 2);
-      }).catch((err) => {
-        console.error("Error calling Sheets API:", err);
-        document.getElementById("output").innerText = "Error: " + (err.result && err.result.error ? err.result.error.message : err);
+        logOutput('Append success:\n' + JSON.stringify(response.result, null, 2));
+      }).catch((error) => {
+        logOutput('Append error:\n' + JSON.stringify(error, null, 2));
       });
     }
 
-    // Load the API client and auth2 library, then initialize the client
-    gapi.load("client:auth2", initClient);
+    // Helper function to log messages in the <pre> block
+    function logOutput(message) {
+      const output = document.getElementById('output');
+      output.textContent = message;
+      console.log(message);
+    }
 
-    // Add click event listener to the test button
-    document.getElementById("testApiBtn").addEventListener("click", testSheetsAPI);
+    // Attach event listeners to buttons
+    document.getElementById('signInBtn').addEventListener('click', signIn);
+    document.getElementById('checkUserBtn').addEventListener('click', checkUser);
+    document.getElementById('appendDataBtn').addEventListener('click', appendData);
+
+    // Load the client on page load
+    window.onload = onGapiLoad;
   </script>
 </body>
 </html>
