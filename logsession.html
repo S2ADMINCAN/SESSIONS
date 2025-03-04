@@ -70,9 +70,9 @@
 <body>
   <div class="container">
     <h2>STUDENTS SQUARED TUTORING - OTTAWA, ON</h2>
-    <!-- Centered login button -->
+    <!-- Centered login button, red before login -->
     <div style="text-align: center;">
-      <button id="loginBtn">Login</button>
+      <button id="loginBtn" style="background-color: red;">Login</button>
     </div>
     <form id="sessionForm">
       <label for="student">Student:</label>
@@ -309,8 +309,10 @@
           console.log("Access token obtained:", accessToken);
           // Enable the student dropdown once logged in
           document.getElementById('student').disabled = false;
-          // Disable the login button after login
-          document.getElementById('loginBtn').disabled = true;
+          // Disable the login button and change text to smiley when logged in.
+          const loginBtn = document.getElementById('loginBtn');
+          loginBtn.textContent = ":)";
+          loginBtn.disabled = true;
           appendData();
         };
         requestAccessToken();
@@ -331,7 +333,26 @@
         console.log("Access token obtained:", accessToken);
         // Enable the student dropdown once logged in
         document.getElementById('student').disabled = false;
-        // Disable the login button after login
-        document.getElementById('loginBtn').disabled = true;
+        // Change login button text to ":)" and disable it after login
+        const loginBtn = document.getElementById('loginBtn');
+        loginBtn.textContent = ":)";
+        loginBtn.disabled = true;
       };
-      requestAccessToken
+      requestAccessToken();
+    });
+
+    // On window load, initialize the gapi client and token client.
+    window.onload = function() {
+      gapi.load('client', () => {
+        initGapiClient();
+      });
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPE,
+        // Set an empty callback initially; will be overwritten by the login button.
+        callback: () => {}
+      });
+    };
+  </script>
+</body>
+</html>
