@@ -2,116 +2,62 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Google Sheets Permission Test</title>
+  <title>Redirect-based Google OAuth Test</title>
 </head>
 <body>
-  <h1>Test Google Sheets Permissions</h1>
-  
-  <!-- Buttons for different actions -->
-  <button id="signInBtn">Sign In</button>
-  <button id="checkUserBtn">Check Signed-in User</button>
-  <button id="appendDataBtn">Append Data to Sheet</button>
-  
+  <h1>Redirect-based Google OAuth Test</h1>
+  <button id="signInRedirectBtn">Sign In with Redirect</button>
   <pre id="output" style="background: #f0f0f0; padding: 1em;"></pre>
 
-  <!-- Load the Google API client library -->
-  <script src="https://apis.google.com/js/api.js"></script>
   <script>
-    // TODO: Replace with your own credentials
+    // Replace with your own credentials:
     const CLIENT_ID = '110744525010-34st0v7r172u2uerpi2e3j1ghkk555qk.apps.googleusercontent.com';
-    const API_KEY = 'AIzaSyBfkl02IsZznHMlkNhyqzDQr4TfUJc6-Bw';
+    // Must be registered as an Authorized Redirect URI in your Google Cloud Console.
+    const REDIRECT_URI = 'https://s2admincan.github.io/SESSIONS/logsession.html';
     const SCOPE = 'https://www.googleapis.com/auth/spreadsheets';
-    const SPREADSHEET_ID = '1Mj5WJU8NhcAjbvGbia3S8Uo74ng_zKo8mJSE3ANy7lM'; // e.g. "1Mj5WJU8NhcAjbvGbia3S8Uo74ng_zKo8mJSE3ANy7lM"
-    const RANGE = 'Sheet1!A2'; // Where you want to append data
 
-    // Initialize the API client when the library is loaded
-    function onGapiLoad() {
-      gapi.load('client:auth2', initClient);
-    }
-
-    // Set up the client with your API key and Client ID, then log or handle any errors
-    function initClient() {
-      gapi.client.init({
-        apiKey: API_KEY,
-        clientId: CLIENT_ID,
+    // Function to initiate redirect-based sign-in
+    function redirectSignIn() {
+      const oauth2Endpoint = 'https://accounts.google.com/o/oauth2/v2/auth';
+      const params = {
+        client_id: CLIENT_ID,
+        redirect_uri: REDIRECT_URI,
+        response_type: 'token', // Implicit flow returns an access token
         scope: SCOPE,
-        discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4'],
-      }).then(() => {
-        logOutput('GAPI client initialized. Ready for sign-in.');
-      }).catch((error) => {
-        logOutput('Error initializing GAPI client:\n' + JSON.stringify(error, null, 2));
-      });
-    }
-
-    // Sign the user in
-    function signIn() {
-      const authInstance = gapi.auth2.getAuthInstance();
-      if (!authInstance) {
-        logOutput('Auth instance not ready. Make sure initClient ran successfully.');
-        return;
-      }
-      authInstance.signIn().then(() => {
-        logOutput('User signed in successfully.');
-      }).catch((error) => {
-        logOutput('Sign-in error:\n' + JSON.stringify(error, null, 2));
-      });
-    }
-
-    // Check which user is currently signed in
-    function checkUser() {
-      const authInstance = gapi.auth2.getAuthInstance();
-      if (!authInstance) {
-        logOutput('Auth instance not ready.');
-        return;
-      }
-      const user = authInstance.currentUser.get();
-      if (user && user.isSignedIn()) {
-        const profile = user.getBasicProfile();
-        const email = profile.getEmail();
-        logOutput('Currently signed in as: ' + email);
-      } else {
-        logOutput('No user is signed in.');
-      }
-    }
-
-    // Append a row of data to your Google Sheet
-    function appendData() {
-      const now = new Date().toString();
-      const values = [
-        // Adjust the data here as needed
-        ['Test from minimal page', now]
-      ];
-
-      const body = {
-        values: values
+        include_granted_scopes: 'true',
+        state: 'pass-through value'
       };
 
-      gapi.client.sheets.spreadsheets.values.append({
-        spreadsheetId: SPREADSHEET_ID,
-        range: RANGE,
-        valueInputOption: 'RAW',
-        resource: body
-      }).then((response) => {
-        logOutput('Append success:\n' + JSON.stringify(response.result, null, 2));
-      }).catch((error) => {
-        logOutput('Append error:\n' + JSON.stringify(error, null, 2));
-      });
+      // Build the full URL for the OAuth request
+      const url = oauth2Endpoint + '?' + Object.keys(params)
+        .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k]))
+        .join('&');
+
+      // Redirect the browser to the OAuth 2.0 endpoint
+      window.location.href = url;
     }
 
-    // Helper function to log messages in the <pre> block
-    function logOutput(message) {
+    // Attach event listener to the sign-in button
+    document.getElementById('signInRedirectBtn').addEventListener('click', redirectSignIn);
+
+    // On page load, check if there's an access token in the URL hash
+    window.onload = function() {
       const output = document.getElementById('output');
-      output.textContent = message;
-      console.log(message);
+      if (window.location.hash) {
+        const hash = window.location.hash.substring(1); // Remove the '#'
+        const params = new URLSearchParams(hash);
+        if (params.has('access_token')) {
+          const accessToken = params.get('access_token');
+          output.textContent = 'Access token received:\n' + accessToken;
+          // Optionally, remove the hash for cleaner URL display:
+          window.history.replaceState({}, document.title, window.location.pathname);
+        } else if (params.has('error')) {
+          output.textContent = 'Error: ' + params.get('error');
+        }
+      } else {
+        output.textContent = 'Click "Sign In with Redirect" to start OAuth flow.';
+      }
     }
-
-    // Attach event listeners to buttons
-    document.getElementById('signInBtn').addEventListener('click', signIn);
-    document.getElementById('checkUserBtn').addEventListener('click', checkUser);
-    document.getElementById('appendDataBtn').addEventListener('click', appendData);
-
-    // Load the client on page load
-    window.onload = onGapiLoad;
   </script>
 </body>
 </html>
