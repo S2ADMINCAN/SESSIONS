@@ -1,82 +1,70 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://www.gstatic.com https://apis.google.com; object-src 'none';">
-  <title>Google Sheets API Redirect Test</title>
+  <meta charset="UTF-8">
+  <title>Google Sheets API Test with New GIS</title>
 </head>
 <body>
-  <h1>Google Sheets API Redirect Test</h1>
-  <button id="signInRedirectBtn">Sign In with Redirect</button>
+  <h1>Google Sheets API Test (New GIS)</h1>
+  <button id="signInBtn">Sign In & Get Access Token</button>
   <button id="appendDataBtn">Append Data to Sheet</button>
   <pre id="output" style="background: #f0f0f0; padding: 1em;"></pre>
-
-  <!-- Load the Google API client library -->
+  
+  <!-- Load new Google Identity Services library -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <!-- Load the Google API client library (for Sheets API calls) -->
   <script src="https://apis.google.com/js/api.js"></script>
+  
   <script>
-    // Replace with your own credentials
+    // Replace with your own credentials:
     const CLIENT_ID = '110744525010-34st0v7r172u2uerpi2e3j1ghkk555qk.apps.googleusercontent.com';
     const API_KEY = 'AIzaSyBfkl02IsZznHMlkNhyqzDQr4TfUJc6-Bw';
     const SCOPE = 'https://www.googleapis.com/auth/spreadsheets';
     const SPREADSHEET_ID = '1Mj5WJU8NhcAjbvGbia3S8Uo74ng_zKo8mJSE3ANy7lM';
-    // Must be registered as an Authorized Redirect URI in your Cloud Console.
-    const REDIRECT_URI = 'https://s2admincan.github.io/SESSIONS/logsession.html';
-
-    // Initialize the client after gapi is loaded.
-    function initClient() {
-      gapi.client.init({
+    const DISCOVERY_DOC = 'https://sheets.googleapis.com/$discovery/rest?version=v4';
+    
+    let accessToken = null;
+    let tokenClient;
+    
+    // Initialize the gapi client (for Sheets API)
+    function initGapiClient() {
+      return gapi.client.init({
         apiKey: API_KEY,
-        clientId: CLIENT_ID,
-        scope: SCOPE,
-        // Including the Sheets API discovery document ensures gapi.client.sheets is available.
-        discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4']
-      }).then(() => {
-        logOutput('GAPI client initialized. Ready for API calls.');
-      }).catch((error) => {
-        logOutput('Error initializing GAPI client:\n' + JSON.stringify(error, null, 2));
+        discoveryDocs: [DISCOVERY_DOC],
       });
     }
-
-    // Load gapi client and auth2, then initialize client.
-    gapi.load('client:auth2', initClient);
-
-    // Redirect-based sign in function.
-    function redirectSignIn() {
-      const oauth2Endpoint = 'https://accounts.google.com/o/oauth2/v2/auth';
-      const params = {
-        client_id: CLIENT_ID,
-        redirect_uri: REDIRECT_URI,
-        response_type: 'token', // Implicit flow returns an access token in the URL hash.
-        scope: SCOPE,
-        include_granted_scopes: 'true',
-        state: 'pass-through value'
-      };
-
-      // Construct the URL for the OAuth 2.0 request.
-      const url = oauth2Endpoint + '?' +
-        Object.keys(params).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k])).join('&');
-
-      // Redirect the browser to the OAuth 2.0 endpoint.
-      window.location.href = url;
+    
+    // Log messages to the output <pre> element
+    function logOutput(message) {
+      const output = document.getElementById('output');
+      output.textContent = message;
+      console.log(message);
     }
-
-    // Append a row of data to the Google Sheet.
+    
+    // Function to request an access token using the new GIS library
+    function requestAccessToken() {
+      tokenClient.requestAccessToken();
+    }
+    
+    // Append data to the Google Sheet
     function appendData() {
-      // Ensure that gapi.client.sheets is defined.
-      if (!gapi.client.sheets) {
-        logOutput("Error: gapi.client.sheets is undefined. Ensure the Sheets API discovery document is loaded.");
+      if (!accessToken) {
+        logOutput("Please sign in to get an access token first.");
         return;
       }
-
-      // Example data to append.
+      
+      // Set the access token on the gapi client
+      gapi.client.setToken({ access_token: accessToken });
+      
       const values = [
         ["Test Data", new Date().toString()]
       ];
-      const body = { values };
-
+      const body = { values: values };
+      
       gapi.client.sheets.spreadsheets.values.append({
         spreadsheetId: SPREADSHEET_ID,
-        range: 'Sheet1!A2', // Adjust range as needed.
-        valueInputOption: 'RAW',
+        range: "Sheet1!A2", // Adjust the range as needed
+        valueInputOption: "RAW",
         resource: body
       }).then((response) => {
         logOutput("Data appended successfully:\n" + JSON.stringify(response.result, null, 2));
@@ -84,32 +72,36 @@
         logOutput("Error appending data:\n" + JSON.stringify(error, null, 2));
       });
     }
-
-    // Helper function to log output to the <pre> element.
-    function logOutput(message) {
-      const output = document.getElementById('output');
-      output.textContent = message;
-      console.log(message);
-    }
-
-    // Attach event listeners to buttons.
-    document.getElementById('signInRedirectBtn').addEventListener('click', redirectSignIn);
-    document.getElementById('appendDataBtn').addEventListener('click', appendData);
-
-    // On page load, if redirected back from sign in, display the token (optional).
+    
+    // Load the gapi client and initialize it, then set up the token client
     window.onload = function() {
-      // If there's an access token in the URL hash, you can parse it here.
-      if (window.location.hash) {
-        const hash = window.location.hash.substring(1); // Remove the '#'
-        const params = new URLSearchParams(hash);
-        if (params.has('access_token')) {
-          const token = params.get('access_token');
-          logOutput("Access token received:\n" + token);
-          // Optionally, remove the hash for a cleaner URL:
-          window.history.replaceState({}, document.title, window.location.pathname);
+      // Load gapi client (for Sheets API)
+      gapi.load('client', () => {
+        initGapiClient().then(() => {
+          logOutput("GAPI client initialized for Sheets API.");
+        }).catch((error) => {
+          logOutput("Error initializing GAPI client:\n" + JSON.stringify(error, null, 2));
+        });
+      });
+      
+      // Initialize the token client using the new GIS library
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPE,
+        callback: (response) => {
+          if (response.error) {
+            logOutput("Error obtaining access token:\n" + JSON.stringify(response, null, 2));
+            return;
+          }
+          accessToken = response.access_token;
+          logOutput("Access token obtained:\n" + accessToken);
         }
-      }
-    }
+      });
+      
+      // Attach event listeners to buttons
+      document.getElementById('signInBtn').addEventListener('click', requestAccessToken);
+      document.getElementById('appendDataBtn').addEventListener('click', appendData);
+    };
   </script>
 </body>
 </html>
