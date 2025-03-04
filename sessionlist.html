@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Session List - STUDENTS SQUARED TUTORING - OTTAWA, ON</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: black;
+      color: white;
+      padding: 20px;
+    }
+    h2 {
+      text-align: center;
+    }
+    .buttons {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    button {
+      background-color: red;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    button:hover {
+      background-color: darkred;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    table, th, td {
+      border: 1px solid white;
+    }
+    th, td {
+      padding: 8px;
+      text-align: center;
+    }
+    footer {
+      text-align: center;
+      font-size: 0.8em;
+      color: #aaa;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Session List</h2>
+  <div class="buttons">
+    <button id="loginBtn">Login</button>
+    <button id="refreshBtn" disabled>Refresh List</button>
+  </div>
+  <div id="tableContainer">
+    <!-- The spreadsheet data will be rendered here as a table -->
+  </div>
+  <footer>ALEC FRASER - STUDENTS SQUARED TUTORING - OTTAWA, ON</footer>
+
+  <!-- Load the new GIS library -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <!-- Load the Google API client library -->
+  <script src="https://apis.google.com/js/api.js"></script>
+  <script>
+    // Replace with your own credentials:
+    const CLIENT_ID = '110744525010-34st0v7r172u2uerpi2e3j1ghkk555qk.apps.googleusercontent.com';
+    const API_KEY = 'AIzaSyBfkl02IsZznHMlkNhyqzDQr4TfUJc6-Bw';
+    // For reading, we use the readonly scope:
+    const SCOPE = 'https://www.googleapis.com/auth/spreadsheets.readonly';
+    const SPREADSHEET_ID = '1Mj5WJU8NhcAjbvGbia3S8Uo74ng_zKo8mJSE3ANy7lM';
+    // Adjust the range as needed. Here we assume headers are in row 1.
+    const RANGE = 'Sheet1!A1:Z';
+    const DISCOVERY_DOC = 'https://sheets.googleapis.com/$discovery/rest?version=v4';
+
+    let accessToken = null;
+    let tokenClient;
+
+    // Initialize the gapi client for Sheets API.
+    function initGapiClient() {
+      return gapi.client.init({
+        apiKey: API_KEY,
+        discoveryDocs: [DISCOVERY_DOC],
+      }).then(() => {
+        console.log("GAPI client initialized for Sheets API.");
+      }).catch((error) => {
+        console.error("Error initializing GAPI client:", error);
+      });
+    }
+
+    // Request an access token using the new GIS token client.
+    function requestAccessToken() {
+      tokenClient.requestAccessToken();
+    }
+
+    // Function to fetch spreadsheet data and display it as a table.
+    function fetchAndDisplayData() {
+      if (!accessToken) {
+        alert("Please sign in to get an access token first.");
+        return;
+      }
+      gapi.client.setToken({ access_token: accessToken });
+      gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: RANGE,
+      }).then((response) => {
+        const data = response.result.values;
+        if (!data || data.length === 0) {
+          document.getElementById("tableContainer").innerHTML = "<p>No data found.</p>";
+          return;
+        }
+        let tableHtml = "<table>";
+        // Use the first row as header
+        tableHtml += "<thead><tr>";
+        data[0].forEach(header => {
+          tableHtml += `<th>${header}</th>`;
+        });
+        tableHtml += "</tr></thead><tbody>";
+        // Remaining rows as data
+        for (let i = 1; i < data.length; i++) {
+          tableHtml += "<tr>";
+          data[i].forEach(cell => {
+            tableHtml += `<td>${cell}</td>`;
+          });
+          tableHtml += "</tr>";
+        }
+        tableHtml += "</tbody></table>";
+        document.getElementById("tableContainer").innerHTML = tableHtml;
+      }).catch((error) => {
+        console.error("Error fetching spreadsheet data:", error);
+        alert("Failed to fetch spreadsheet data.");
+      });
+    }
+
+    // Attach event listener to the refresh button.
+    document.getElementById("refreshBtn").addEventListener("click", fetchAndDisplayData);
+
+    // Attach event listener to the login button.
+    document.getElementById("loginBtn").addEventListener("click", () => {
+      tokenClient.callback = (response) => {
+        if (response.error) {
+          console.error("Error obtaining access token:", response);
+          alert("Error obtaining access token.");
+          return;
+        }
+        accessToken = response.access_token;
+        console.log("Access token obtained:", accessToken);
+        // Change login button text to ":)" and disable it.
+        document.getElementById("loginBtn").textContent = ":)";
+        document.getElementById("loginBtn").disabled = true;
+        // Enable the refresh button.
+        document.getElementById("refreshBtn").disabled = false;
+        // Optionally, automatically fetch data after login.
+        fetchAndDisplayData();
+      };
+      requestAccessToken();
+    });
+
+    // On window load, initialize the gapi client and token client.
+    window.onload = function() {
+      gapi.load("client", () => {
+        initGapiClient();
+      });
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPE,
+        callback: () => {}
+      });
+    };
+  </script>
+</body>
+</html>
