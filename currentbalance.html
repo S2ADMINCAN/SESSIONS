@@ -97,26 +97,28 @@
     }
 
     // Function to filter sessions by student name and sum the Price for rows where Client Charged is "No"
-    function calculateBalance(data, searchName) {
-      let total = 0;
-      let matchFound = false;
-      // Assuming the header row is row 1.
-      for (let i = 1; i < data.length; i++) {
-        let row = data[i];
-        // Check if the student's name (column 2, index 1) matches search (case-insensitive, partial allowed)
-        if (row[1] && row[1].toLowerCase().includes(searchName.toLowerCase())) {
-          matchFound = true;
-          // Only add the price if "Client Charged" (column 10, index 9) is "No"
-          if (row[9] && row[9].trim().toLowerCase() === "no") {
-            let price = parseFloat(row[6]);
-            if (!isNaN(price)) {
-              total += price;
-            }
-          }
+function calculateBalance(data, searchName) {
+  let total = 0;
+  let matchFound = false;
+  searchName = searchName.toLowerCase().trim(); // Ensure case-insensitive match
+
+  for (let i = 1; i < data.length; i++) {
+    let row = data[i];
+    let studentName = row[1]?.trim().toLowerCase(); // Make sure it's defined
+
+    if (studentName === searchName) { // Exact match only
+      matchFound = true;
+      if (row[9] && row[9].trim().toLowerCase() === "no") {
+        let price = parseFloat(row[6]);
+        if (!isNaN(price)) {
+          total += price;
         }
       }
-      return { total, matchFound };
     }
+  }
+  return { total, matchFound };
+}
+
 
     // Function to perform the search and display the current balance.
     function searchBalance() {
