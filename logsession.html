@@ -70,8 +70,10 @@
 <body>
   <div class="container">
     <h2>STUDENTS SQUARED TUTORING - OTTAWA, ON</h2>
-    <!-- Login button; user must log in before accessing names -->
-    <button id="loginBtn">Login</button>
+    <!-- Centered login button -->
+    <div style="text-align: center;">
+      <button id="loginBtn">Login</button>
+    </div>
     <form id="sessionForm">
       <label for="student">Student:</label>
       <!-- Initially disabled so that names are not accessible until logged in -->
@@ -332,21 +334,4 @@
         // Disable the login button after login
         document.getElementById('loginBtn').disabled = true;
       };
-      requestAccessToken();
-    });
-
-    // On window load, initialize the gapi client and token client.
-    window.onload = function() {
-      gapi.load('client', () => {
-        initGapiClient();
-      });
-      tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID,
-        scope: SCOPE,
-        // Set an empty callback initially; will be overwritten by the login button.
-        callback: () => {}
-      });
-    };
-  </script>
-</body>
-</html>
+      requestAccessToken
