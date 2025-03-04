@@ -22,7 +22,9 @@
     label {
       font-weight: bold;
     }
-    input[type="text"], select {
+    input[type="text"],
+    input[type="number"],
+    select {
       width: 100%;
       padding: 8px;
       margin: 10px 0;
@@ -46,6 +48,11 @@
     button:hover {
       background-color: #777;
     }
+    #errorMsg {
+      color: red;
+      margin-top: 10px;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -67,8 +74,8 @@
         <option value="Cassidy,Ryan,cassidyy148@gmail.com,30,6">Cassidy</option>
       </select><br />
 
-      <!-- New Email field -->
-      <label for="email">Email:</label>
+      <!-- New Email field auto-filled -->
+      <label for="email">E-mail:</label>
       <input type="text" id="email" required readonly /><br />
 
       <label for="tutor">Tutor:</label>
@@ -76,6 +83,14 @@
 
       <label for="date">Date:</label>
       <input type="text" id="date" required readonly /><br />
+
+      <!-- New input for Session Length -->
+      <label for="sessionLength">Session Length (Hrs):</label>
+      <input type="number" id="sessionLength" required value="1" min="0.1" step="0.1"/><br />
+
+      <!-- New input for Hours Traveled -->
+      <label for="hoursTravelled">Hours Traveled (if applic.):</label>
+      <input type="number" id="hoursTravelled" placeholder="Leave blank if none" min="0" step="0.1"/><br />
 
       <label for="price">Price:</label>
       <input type="text" id="price" required readonly /><br />
@@ -90,6 +105,7 @@
       <input type="checkbox" id="studentCharged" /><br />
 
       <center><button type="submit">Submit</button></center>
+      <div id="errorMsg"></div>
     </form>
   </div>
 
@@ -113,7 +129,7 @@
     document.getElementById('date').value = new Date().toISOString().split('T')[0];
 
     // Auto-fill fields when a student is selected.
-    // Expected option value format: Student,Tutor,Email,Price,S2Fee
+    // Option value format: Student,Tutor,Email,Price,S2Fee
     document.getElementById('student').addEventListener('change', () => {
       const selectedData = document.getElementById('student').value.split(',');
       // selectedData[0] = Student, [1] = Tutor, [2] = Email, [3] = Price, [4] = S2 Fee
@@ -124,6 +140,44 @@
       document.getElementById('tutorPaid').checked = false;
       document.getElementById('studentCharged').checked = false;
     });
+
+    // Validate form inputs and return an array of error messages (if any)
+    function validateForm() {
+      let errors = [];
+      const student = document.getElementById('student').value;
+      if (!student) {
+        errors.push("Please select a student.");
+      }
+      const sessionLength = document.getElementById('sessionLength').value;
+      if (!sessionLength || isNaN(sessionLength) || parseFloat(sessionLength) <= 0) {
+        errors.push("Session Length must be a positive number.");
+      }
+      const hoursTravelled = document.getElementById('hoursTravelled').value;
+      if (hoursTravelled !== "" && (isNaN(hoursTravelled) || parseFloat(hoursTravelled) < 0)) {
+        errors.push("Hours Traveled must be a non-negative number.");
+      }
+      const date = document.getElementById('date').value;
+      if (!date) {
+        errors.push("Date is missing.");
+      }
+      const tutor = document.getElementById('tutor').value;
+      if (!tutor) {
+        errors.push("Tutor is missing.");
+      }
+      const email = document.getElementById('email').value;
+      if (!email) {
+        errors.push("Email is missing.");
+      }
+      const price = document.getElementById('price').value;
+      if (!price) {
+        errors.push("Price is missing.");
+      }
+      const s2Fee = document.getElementById('s2Fee').value;
+      if (!s2Fee) {
+        errors.push("S2 Fee is missing.");
+      }
+      return errors;
+    }
 
     // Initialize the gapi client for Sheets API
     function initGapiClient() {
@@ -156,15 +210,17 @@
       const email = document.getElementById('email').value;
       const tutor = document.getElementById('tutor').value;
       const date = document.getElementById('date').value;
+      const sessionLength = document.getElementById('sessionLength').value;
+      const hoursTravelled = document.getElementById('hoursTravelled').value;
       const price = document.getElementById('price').value;
       const s2Fee = document.getElementById('s2Fee').value;
       const tutorPaid = document.getElementById('tutorPaid').checked ? 'Yes' : 'No';
       const studentCharged = document.getElementById('studentCharged').checked ? 'Yes' : 'No';
 
-      // Prepare row data according to the spreadsheet header:
+      // Prepare row data according to spreadsheet header:
       // Date and Time, Student, E-mail, Tutor, Session Length (Hrs), Hours Traveled, Price, S2 Fee, Tutor Paid, Client Charged, Notes
       const values = [
-        [date, student, email, tutor, 1, '', price, s2Fee, tutorPaid, studentCharged, '']
+        [date, student, email, tutor, sessionLength, hoursTravelled, price, s2Fee, tutorPaid, studentCharged, '']
       ];
       const resource = { values };
 
@@ -182,9 +238,19 @@
       });
     }
 
-    // Handle form submission: if no access token, request one then append data.
+    // Handle form submission: validate inputs, request access token if needed, then append data.
     document.getElementById('sessionForm').addEventListener('submit', (e) => {
       e.preventDefault();
+
+      // Clear previous error messages
+      document.getElementById('errorMsg').textContent = "";
+
+      const errors = validateForm();
+      if (errors.length > 0) {
+        document.getElementById('errorMsg').textContent = errors.join(" ");
+        return;
+      }
+
       if (!accessToken) {
         // Set a callback to get the token then proceed
         tokenClient.callback = (response) => {
