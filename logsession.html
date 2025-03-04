@@ -55,16 +55,21 @@
       <label for="student">Student:</label>
       <select id="student" required>
         <option value="" disabled selected>Select a student</option>
-        <option value="Isaac,Ryan,30,2">Isaac</option>
-        <option value="Sophie,Ryan,30,6">Sophie</option>
-        <option value="Declan,Ryan,30,6">Declan</option>
-        <option value="Isla,Nick,35,7">Isla</option>
-        <option value="Cameryn,Nick,30,4">Cameryn</option>
-        <option value="Clare,Nick,40,8">Clare</option>
-        <option value="Munreet,Jonah,30,6">Munreet</option>
-        <option value="Ikjot,Ryan,30,6">Ikjot</option>
-        <option value="Cassidy,Ryan,30,6">Cassidy</option>
+        <!-- Format: Student, Tutor, Email, Price, S2 Fee -->
+        <option value="Isaac,Ryan,N/A,30,2">Isaac</option>
+        <option value="Sophie,Ryan,sophiehenri613@gmail.com,30,6">Sophie</option>
+        <option value="Declan,Ryan,declanhagley@gmail.com,30,6">Declan</option>
+        <option value="Isla,Nick,lindseycurran@hotmail.com,35,7">Isla</option>
+        <option value="Cameryn,Nick,lindseycurran@hotmail.com,30,4">Cameryn</option>
+        <option value="Clare,Nick,clarekwiatkowski00@gmail.com,40,8">Clare</option>
+        <option value="Munreet,Jonah,munreetcheema16@gmail.com,30,6">Munreet</option>
+        <option value="Ikjot,Ryan,IkjotCheema2008@gmail.com,30,6">Ikjot</option>
+        <option value="Cassidy,Ryan,cassidyy148@gmail.com,30,6">Cassidy</option>
       </select><br />
+
+      <!-- New Email field -->
+      <label for="email">Email:</label>
+      <input type="text" id="email" required readonly /><br />
 
       <label for="tutor">Tutor:</label>
       <input type="text" id="tutor" required readonly /><br />
@@ -88,7 +93,7 @@
     </form>
   </div>
 
-  <!-- Load new GIS library -->
+  <!-- Load the new GIS library -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <!-- Load the Google API client library -->
   <script src="https://apis.google.com/js/api.js"></script>
@@ -107,12 +112,15 @@
     // Set today's date in the "date" field
     document.getElementById('date').value = new Date().toISOString().split('T')[0];
 
-    // Auto-fill fields when a student is selected
+    // Auto-fill fields when a student is selected.
+    // Expected option value format: Student,Tutor,Email,Price,S2Fee
     document.getElementById('student').addEventListener('change', () => {
       const selectedData = document.getElementById('student').value.split(',');
+      // selectedData[0] = Student, [1] = Tutor, [2] = Email, [3] = Price, [4] = S2 Fee
       document.getElementById('tutor').value = selectedData[1];
-      document.getElementById('price').value = selectedData[2];
-      document.getElementById('s2Fee').value = selectedData[3];
+      document.getElementById('email').value = selectedData[2];
+      document.getElementById('price').value = selectedData[3];
+      document.getElementById('s2Fee').value = selectedData[4];
       document.getElementById('tutorPaid').checked = false;
       document.getElementById('studentCharged').checked = false;
     });
@@ -145,6 +153,7 @@
 
       // Gather form data
       const student = document.getElementById('student').value.split(',')[0];
+      const email = document.getElementById('email').value;
       const tutor = document.getElementById('tutor').value;
       const date = document.getElementById('date').value;
       const price = document.getElementById('price').value;
@@ -152,9 +161,10 @@
       const tutorPaid = document.getElementById('tutorPaid').checked ? 'Yes' : 'No';
       const studentCharged = document.getElementById('studentCharged').checked ? 'Yes' : 'No';
 
-      // Prepare data as required by Sheets API
+      // Prepare row data according to the spreadsheet header:
+      // Date and Time, Student, E-mail, Tutor, Session Length (Hrs), Hours Traveled, Price, S2 Fee, Tutor Paid, Client Charged, Notes
       const values = [
-        [date, student, '', tutor, '', '', price, s2Fee, tutorPaid, studentCharged, '']
+        [date, student, email, tutor, 1, '', price, s2Fee, tutorPaid, studentCharged, '']
       ];
       const resource = { values };
 
