@@ -42,6 +42,11 @@
       margin-top: 20px;
       font-size: 1.2em;
     }
+    #errorMsg {
+      margin-top: 20px;
+      font-size: 1.2em;
+      color: red;
+    }
     footer {
       margin-top: 20px;
       font-size: 0.8em;
@@ -52,10 +57,11 @@
 <body>
   <div class="container">
     <h2>Current Balance</h2>
-    <p>Student Name: </p>
+    <p>Enter a student name to see their current balance (only sessions where Client Charged is "No" are tallied).</p>
     <input type="text" id="studentSearch" placeholder="Enter student name" />
     <button id="searchBtn">Check Balance</button>
     <div id="result"></div>
+    <div id="errorMsg"></div>
   </div>
   <footer>ALEC FRASER - STUDENTS SQUARED TUTORING - OTTAWA, ON</footer>
 
@@ -92,28 +98,31 @@
 
     // Function to filter sessions by student name and sum the Price for rows where Client Charged is "No"
     function calculateBalance(data, searchName) {
-      // Assuming the spreadsheet header row is:
-      // Date, Student, E-mail, Tutor, Session Length, Hours Traveled, Price, S2 Fee, Tutor Paid, Client Charged, Notes
       let total = 0;
+      let matchFound = false;
+      // Assuming the header row is row 1.
       for (let i = 1; i < data.length; i++) {
-        const row = data[i];
-        // Check if the student name (column 2, index 1) contains the search string (case-insensitive)
+        let row = data[i];
+        // Check if the student's name (column 2, index 1) matches search (case-insensitive, partial allowed)
         if (row[1] && row[1].toLowerCase().includes(searchName.toLowerCase())) {
-          // Only add the Price (column 7, index 6) if Client Charged (column 10, index 9) is "No"
+          matchFound = true;
+          // Only add the price if "Client Charged" (column 10, index 9) is "No"
           if (row[9] && row[9].trim().toLowerCase() === "no") {
-            const price = parseFloat(row[6]);
+            let price = parseFloat(row[6]);
             if (!isNaN(price)) {
               total += price;
             }
           }
         }
       }
-      return total;
+      return { total, matchFound };
     }
 
-    // Function to perform the search and display the balance.
+    // Function to perform the search and display the current balance.
     function searchBalance() {
       const searchName = document.getElementById('studentSearch').value.trim();
+      document.getElementById('result').innerHTML = "";
+      document.getElementById('errorMsg').innerHTML = "";
       if (searchName === "") {
         alert("Please enter a student name to search.");
         return;
@@ -124,8 +133,12 @@
           document.getElementById("result").innerHTML = "<p>No session data found.</p>";
           return;
         }
-        const balance = calculateBalance(data, searchName);
-        document.getElementById("result").innerHTML = `<p>Current balance for <strong>${searchName}</strong>: $${balance.toFixed(2)}</p>`;
+        const { total, matchFound } = calculateBalance(data, searchName);
+        if (!matchFound) {
+          document.getElementById("errorMsg").innerHTML = `<p>No sessions found for <strong>${searchName}</strong>.</p>`;
+        } else {
+          document.getElementById("result").innerHTML = `<p>Current balance for <strong>${searchName}</strong>: $${total.toFixed(2)}</p>`;
+        }
       }).catch((error) => {
         console.error("Error fetching sessions data:", error);
         alert("Failed to fetch sessions data.");
