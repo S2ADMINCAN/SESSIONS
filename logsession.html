@@ -259,8 +259,8 @@
       const date = document.getElementById('date').value;
       const sessionLength = document.getElementById('sessionLength').value;
       const hoursTravelled = document.getElementById('hoursTravelled').value;
-      const price = document.getElementById('price').value;
-      const s2Fee = document.getElementById('s2Fee').value;
+      const price = parseFloat(document.getElementById('price').value);
+      const s2Fee = parseFloat(document.getElementById('s2Fee').value);
       const tutorPaid = document.getElementById('tutorPaid').checked ? 'Yes' : 'No';
       const studentCharged = document.getElementById('studentCharged').checked ? 'Yes' : 'No';
 
